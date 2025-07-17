@@ -5,9 +5,9 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
 import { Platform } from 'react-native';
-import { IconSymbol } from '../../components/ui/IconSymbol';
-import { HapticTab } from '../../components/HapticTab';
-import TabBarBackground from '../../components/ui/TabBarBackground';
+import { IconSymbol } from '../components/ui/IconSymbol';
+import { HapticTab } from '../components/HapticTab';
+import TabBarBackground from '../components/ui/TabBarBackground';
 import { uvaColors } from '../theme/colors';
 import { useTheme } from '../theme/ui';
 import HomeScreen from '../screens/HomeScreen';
