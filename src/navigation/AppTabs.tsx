@@ -12,12 +12,12 @@ import { uvaColors } from '../theme/colors';
 import { useTheme } from '../theme/ui';
 import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import ExploreScreen from '../screens/ExploreScreen';
+import FeedScreen from '../screens/FeedScreen';
 
 export type AppTabsParamList = {
   Home: undefined;
-  Explore: undefined;
-  Profile: undefined;
+  Feed: undefined;
+  You: undefined;
 };
 
 const Tab = createBottomTabNavigator<AppTabsParamList>();
@@ -58,20 +58,20 @@ export default function AppTabs() {
         }}
       />
       <Tab.Screen
-        name="Explore"
-        component={ExploreScreen}
+        name="Feed"
+        component={FeedScreen}
         options={{
-          title: 'Explore',
+          title: 'Feed',
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="paperplane.fill" color={color} />
           ),
         }}
       />
       <Tab.Screen
-        name="Profile"
+        name="You"
         component={ProfileScreen}
         options={{
-          title: 'Profile',
+          title: 'You',
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="chevron.left.forwardslash.chevron.right" color={color} />
           ),

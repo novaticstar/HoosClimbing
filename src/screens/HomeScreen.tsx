@@ -17,106 +17,142 @@ export default function HomeScreen() {
         <Container style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
-            <View style={[styles.logoContainer, { backgroundColor: colors.primary }]}>
-              <ThemedText variant="h2" color="onPrimary" style={styles.logoText}>
-                UVA
+            <View style={styles.appTitle}>
+              <ThemedText variant="h1" color="accent">
+                Hoos
+              </ThemedText>
+              <ThemedText variant="h1" color="text">
+                Climbing?
               </ThemedText>
             </View>
-            <ThemedText variant="h1" color="primary" style={styles.title}>
-              HoosClimbing
-            </ThemedText>
-            <ThemedText variant="body" color="textSecondary" style={styles.subtitle}>
-              University of Virginia Climbing Community
+            <ThemedText variant="h4" color="text" style={styles.welcomeText}>
+              Welcome [user]!
             </ThemedText>
           </View>
 
-          {/* Welcome Card */}
-          <Card style={styles.welcomeCard}>
-            <ThemedText variant="h3" color="text" style={styles.welcomeTitle}>
-              Welcome to the Community! 🏔️
-            </ThemedText>
-            <ThemedText variant="body" color="textSecondary" style={styles.welcomeText}>
-              Connect with fellow climbers at UVA, discover new routes, and join climbing sessions around Charlottesville.
-            </ThemedText>
-          </Card>
+          {/* Friends Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <ThemedText variant="h3" color="text">
+                Friends
+              </ThemedText>
+              <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
+                →
+              </ThemedText>
+            </View>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.friendsList}
+            >
+              {[1, 2, 3, 4].map((friend) => (
+                <View key={friend} style={styles.friendItem}>
+                  <View style={[styles.friendAvatar, { backgroundColor: colors.surfaceVariant }]}>
+                    <ThemedText variant="h3" color="textSecondary">
+                      👤
+                    </ThemedText>
+                  </View>
+                  <ThemedText variant="caption" color="text" style={styles.friendLabel}>
+                    Label
+                  </ThemedText>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
 
-          {/* Quick Stats */}
-          <View style={styles.statsGrid}>
-            <Card style={styles.statCard}>
-              <ThemedText variant="h2" color="primary" style={styles.statNumber}>
-                156
+          {/* Feed Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <ThemedText variant="h3" color="text">
+                Feed
               </ThemedText>
-              <ThemedText variant="caption" color="textSecondary" style={styles.statLabel}>
-                Active Climbers
+              <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
+                →
               </ThemedText>
-            </Card>
-            
-            <Card style={styles.statCard}>
-              <ThemedText variant="h2" color="accent" style={styles.statNumber}>
-                42
-              </ThemedText>
-              <ThemedText variant="caption" color="textSecondary" style={styles.statLabel}>
-                Routes Logged
-              </ThemedText>
+            </View>
+            <Card style={styles.feedCard}>
+              <View style={[styles.feedImage, { backgroundColor: colors.surfaceVariant }]}>
+                <ThemedText variant="h1" color="textSecondary">
+                  🏔️
+                </ThemedText>
+              </View>
+              <View style={styles.feedContent}>
+                <View style={styles.feedInfo}>
+                  <ThemedText variant="h4" color="text">
+                    Poster
+                  </ThemedText>
+                  <ThemedText variant="body" color="textSecondary">
+                    Post Title
+                  </ThemedText>
+                </View>
+                <View style={[styles.playButton, { backgroundColor: colors.accent }]}>
+                  <ThemedText variant="body" color="onAccent">
+                    ▶
+                  </ThemedText>
+                </View>
+              </View>
             </Card>
           </View>
 
-          {/* Recent Activity */}
-          <Card style={styles.activityCard}>
-            <ThemedText variant="h4" color="text" style={styles.sectionTitle}>
-              Recent Activity
-            </ThemedText>
-            
-            <View style={styles.activityList}>
-              <View style={styles.activityItem}>
-                <View style={[styles.activityIcon, { backgroundColor: colors.accent }]}>
-                  <ThemedText variant="caption" color="onAccent" style={styles.activityIconText}>
-                    🧗
-                  </ThemedText>
-                </View>
-                <View style={styles.activityContent}>
-                  <ThemedText variant="body" color="text">
-                    Sarah completed "Crimson Tide" 5.9
-                  </ThemedText>
-                  <ThemedText variant="caption" color="textSecondary">
-                    2 hours ago
-                  </ThemedText>
-                </View>
-              </View>
-              
-              <View style={styles.activityItem}>
-                <View style={[styles.activityIcon, { backgroundColor: colors.primary }]}>
-                  <ThemedText variant="caption" color="onPrimary" style={styles.activityIconText}>
-                    📍
-                  </ThemedText>
-                </View>
-                <View style={styles.activityContent}>
-                  <ThemedText variant="body" color="text">
-                    New route added at Humpback Rock
-                  </ThemedText>
-                  <ThemedText variant="caption" color="textSecondary">
-                    5 hours ago
-                  </ThemedText>
-                </View>
-              </View>
-              
-              <View style={styles.activityItem}>
-                <View style={[styles.activityIcon, { backgroundColor: colors.info }]}>
-                  <ThemedText variant="caption" color="onPrimary" style={styles.activityIconText}>
-                    👥
-                  </ThemedText>
-                </View>
-                <View style={styles.activityContent}>
-                  <ThemedText variant="body" color="text">
-                    Climbing session this weekend
-                  </ThemedText>
-                  <ThemedText variant="caption" color="textSecondary">
-                    1 day ago
-                  </ThemedText>
-                </View>
-              </View>
+          {/* Events Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <ThemedText variant="h3" color="text">
+                Events
+              </ThemedText>
+              <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
+                →
+              </ThemedText>
             </View>
-          </Card>
+            <Card style={styles.feedCard}>
+              <View style={[styles.feedImage, { backgroundColor: colors.surfaceVariant }]}>
+                <ThemedText variant="h1" color="textSecondary">
+                  🏔️
+                </ThemedText>
+              </View>
+              <View style={styles.feedContent}>
+                <View style={styles.feedInfo}>
+                  <ThemedText variant="h4" color="text">
+                    Event Name
+                  </ThemedText>
+                  <ThemedText variant="body" color="textSecondary">
+                    Event details
+                  </ThemedText>
+                </View>
+                <View style={[styles.playButton, { backgroundColor: colors.accent }]}>
+                  <ThemedText variant="body" color="onAccent">
+                    ▶
+                  </ThemedText>
+                </View>
+              </View>
+            </Card>
+          </View>
+
+          {/* Your Posts Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <ThemedText variant="h3" color="text">
+                Your Posts
+              </ThemedText>
+              <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
+                →
+              </ThemedText>
+            </View>
+            <View style={styles.postsGrid}>
+              {[1, 2, 3, 4].map((post) => (
+                <View key={post} style={styles.postItem}>
+                  <View style={[styles.postImage, { backgroundColor: colors.surfaceVariant }]}>
+                    <ThemedText variant="h4" color="textSecondary">
+                      🏔️
+                    </ThemedText>
+                  </View>
+                  <ThemedText variant="caption" color="text" style={styles.postLabel}>
+                    Label
+                  </ThemedText>
+                </View>
+              ))}
+            </View>
+          </View>
         </Container>
       </ScrollView>
     </SafeAreaView>
@@ -131,83 +167,91 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   header: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: spacing.xl,
   },
-  logoContainer: {
+  appTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  welcomeText: {
+    // Welcome text styling
+  },
+  section: {
+    marginBottom: spacing.xl,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  sectionArrow: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  friendsList: {
+    paddingRight: spacing.md,
+  },
+  friendItem: {
+    alignItems: 'center',
+    marginRight: spacing.lg,
+  },
+  friendAvatar: {
     width: 60,
     height: 60,
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.md,
-    boxShadow: '0px 2px 4px rgba(35, 45, 75, 0.2)',
-    elevation: 4,
-  },
-  logoText: {
-    textAlign: 'center',
-    fontSize: 18,
-  },
-  title: {
-    textAlign: 'center',
     marginBottom: spacing.sm,
   },
-  subtitle: {
+  friendLabel: {
     textAlign: 'center',
   },
-  welcomeCard: {
-    marginBottom: spacing.xl,
+  feedCard: {
+    padding: 0,
+    overflow: 'hidden',
   },
-  welcomeTitle: {
-    marginBottom: spacing.md,
-    textAlign: 'center',
-  },
-  welcomeText: {
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    marginBottom: spacing.xl,
-  },
-  statCard: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: spacing.lg,
-  },
-  statNumber: {
-    marginBottom: spacing.sm,
-  },
-  statLabel: {
-    textAlign: 'center',
-  },
-  activityCard: {
-    marginBottom: spacing.xl,
-  },
-  sectionTitle: {
-    marginBottom: spacing.lg,
-  },
-  activityList: {
-    gap: spacing.lg,
-  },
-  activityItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.md,
-  },
-  activityIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  feedImage: {
+    height: 200,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  activityIconText: {
-    fontSize: 14,
+  feedContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: spacing.lg,
   },
-  activityContent: {
+  feedInfo: {
     flex: 1,
-    gap: spacing.xs,
+  },
+  playButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  postsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+  },
+  postItem: {
+    width: '48%',
+    alignItems: 'center',
+  },
+  postImage: {
+    width: '100%',
+    height: 120,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  postLabel: {
+    textAlign: 'center',
   },
 });
