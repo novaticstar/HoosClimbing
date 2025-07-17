@@ -3,13 +3,15 @@
  */
 
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { uvaColors } from '../theme/colors';
+import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../context/AuthContext';
 import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
 
 export default function HomeScreen() {
   const { colors } = useTheme();
+  const { user } = useAuth();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -17,17 +19,28 @@ export default function HomeScreen() {
         <Container style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
-            <View style={styles.appTitle}>
-              <ThemedText variant="h1" color="accent">
-                Hoos
-              </ThemedText>
-              <ThemedText variant="h1" color="text">
-                Climbing?
-              </ThemedText>
+            <View style={styles.headerTop}>
+              <View style={styles.appTitle}>
+                <ThemedText variant="h1" color="accent">
+                  Hoos
+                </ThemedText>
+                <ThemedText variant="h1" color="text">
+                  Climbing?
+                </ThemedText>
+              </View>
+              <View style={styles.headerButtons}>
+                <TouchableOpacity style={styles.headerButton}>
+                  <Ionicons name="notifications-outline" size={24} color={colors.textSecondary} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.headerButton}>
+                  <Ionicons name="settings-outline" size={24} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
             </View>
-            <ThemedText variant="h4" color="text" style={styles.welcomeText}>
-              Welcome [user]!
+            <ThemedText variant="body" color="textSecondary">
+                Welcome, {user?.user_metadata?.username || 'username'}!
             </ThemedText>
+            
           </View>
 
           {/* Friends Section */}
@@ -170,10 +183,28 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: spacing.xl,
   },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: spacing.sm,
+  },
   appTitle: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  headerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   welcomeText: {
     // Welcome text styling
