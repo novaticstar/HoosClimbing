@@ -6,12 +6,22 @@ import React from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../context/AuthContext';
+import { useAuth  } from '../context/AuthContext';
 import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
+import { Dimensions } from 'react-native';
+
+import { useState } from 'react';
+import { Menu, Provider } from 'react-native-paper';
 
 export default function HomeScreen() {
   const { colors } = useTheme();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const openMenu = () => setMenuVisible(true);
+  const closeMenu = () => setMenuVisible(false);
+
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -32,9 +42,23 @@ export default function HomeScreen() {
                 <TouchableOpacity style={styles.headerButton}>
                   <Ionicons name="notifications-outline" size={24} color={colors.textSecondary} />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.headerButton}>
-                  <Ionicons name="settings-outline" size={24} color={colors.textSecondary} />
-                </TouchableOpacity>
+                <Menu
+                    visible={menuVisible}
+                    onDismiss={closeMenu}
+                    anchor={
+                      <TouchableOpacity style={styles.headerButton} onPress={openMenu}>
+                        <Ionicons name="settings-outline" size={24} color={colors.textSecondary} />
+                      </TouchableOpacity>
+                    }
+                  >
+                    <Menu.Item
+                      onPress={() => {
+                        closeMenu();
+                        signOut(); // Call the sign-out function
+                      }}
+                      title="Sign Out"
+                    />
+                  </Menu>
               </View>
             </View>
             <ThemedText variant="body" color="textSecondary">
@@ -145,7 +169,7 @@ export default function HomeScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <ThemedText variant="h3" color="text">
-                Your Posts
+                Your Posts 
               </ThemedText>
               <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
                 →
@@ -171,6 +195,9 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
+
+const screenWidth = Dimensions.get('window').width;
+const spacingOffset = spacing.md; // adjust based on your margin
 
 const styles = StyleSheet.create({
   container: {
@@ -268,11 +295,12 @@ const styles = StyleSheet.create({
   postsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.md,
+    justifyContent: 'space-between',
+  
   },
   postItem: {
     width: '48%',
-    alignItems: 'center',
+    marginBottom: 16,
   },
   postImage: {
     width: '100%',

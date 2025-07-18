@@ -148,25 +148,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(false);
     }
   };
-
   const signOut = async () => {
     try {
       setLoading(true);
-      
+  
       const { error } = await supabase.auth.signOut();
-      
-      if (error) {
+  
+      if (error && error.message !== 'No active session') {
         console.error('Sign out error:', error);
         Alert.alert('Error', 'Failed to sign out. Please try again.');
       }
     } catch (error) {
-      console.error('Sign out error:', error);
-      Alert.alert('Error', 'Failed to sign out. Please try again.');
+      console.error('Sign out exception:', error);
+      Alert.alert('Error', 'Unexpected error occurred while signing out.');
     } finally {
       setLoading(false);
     }
   };
-
+  
   const resetPassword = async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
