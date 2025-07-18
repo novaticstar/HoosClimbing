@@ -13,11 +13,13 @@ import { useTheme } from '../theme/ui';
 import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import FeedScreen from '../screens/FeedScreen';
+import TestScreen from '../screens/TestScreen';
 
 export type AppTabsParamList = {
   Home: undefined;
   Feed: undefined;
   You: undefined;
+  Test: undefined;
 };
 
 const Tab = createBottomTabNavigator<AppTabsParamList>();
@@ -74,6 +76,16 @@ export default function AppTabs() {
           title: 'You',
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="chevron.left.forwardslash.chevron.right" color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Test"
+        component={TestScreen}
+        options={{
+          title: 'Test',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="gear" color={color} />
           ),
         }}
       />

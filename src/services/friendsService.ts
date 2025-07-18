@@ -60,13 +60,20 @@ export class FriendsService {
    */
   static async getSuggestedUsers(userId: string, limit: number = 10): Promise<User[]> {
     try {
+      console.log('Getting suggested users for:', userId);
+      
       // First, get all user IDs that are already connected (friends or pending)
       const { data: connectedUsers, error: connectError } = await supabase
         .from('friendships')
         .select('friend_id, user_id')
         .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
 
-      if (connectError) throw connectError;
+      if (connectError) {
+        console.error('Error fetching connected users:', connectError);
+        throw connectError;
+      }
+
+      console.log('Connected users:', connectedUsers);
 
       // Extract all connected user IDs
       const connectedUserIds = new Set<string>();
@@ -78,6 +85,8 @@ export class FriendsService {
         }
       });
 
+      console.log('Connected user IDs:', Array.from(connectedUserIds));
+
       // Get all users except current user and connected users
       const { data, error } = await supabase
         .from('profiles')
@@ -85,12 +94,22 @@ export class FriendsService {
         .neq('id', userId)
         .limit(limit * 2); // Get more to filter out connected users
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching profiles:', error);
+        throw error;
+      }
+
+      console.log('All profiles found:', data?.length || 0);
+      data?.forEach(profile => {
+        console.log('Profile:', profile.username || profile.email, profile.id);
+      });
 
       // Filter out connected users and limit results
       const suggestedUsers = (data || [])
         .filter(user => !connectedUserIds.has(user.id))
         .slice(0, limit);
+
+      console.log('Suggested users after filtering:', suggestedUsers.length);
 
       return suggestedUsers;
     } catch (error) {
