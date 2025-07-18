@@ -26,6 +26,56 @@ export interface Friendship {
 
 export class FriendsService {
   /**
+   * Ensure user profile exists (manual fallback)
+   */
+  static async ensureUserProfile(user: any): Promise<boolean> {
+    try {
+      console.log('Ensuring user profile exists for:', user.id);
+      
+      // Check if profile exists
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+        
+      if (existingProfile) {
+        console.log('Profile already exists');
+        return true;
+      }
+      
+      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows found
+        console.error('Error checking profile:', checkError);
+        return false;
+      }
+      
+      // Create profile if it doesn't exist
+      const username = user.user_metadata?.username || user.email?.split('@')[0] || 'user';
+      const full_name = user.user_metadata?.full_name || user.user_metadata?.name || username;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          email: user.email,
+          username: username,
+          full_name: full_name
+        });
+        
+      if (error) {
+        console.error('Error creating profile:', error);
+        return false;
+      }
+      
+      console.log('Profile created successfully:', data);
+      return true;
+    } catch (error) {
+      console.error('Exception ensuring user profile:', error);
+      return false;
+    }
+  }
+
+  /**
    * Test database connectivity and user profile existence
    */
   static async testUserProfile(userId: string): Promise<{ exists: boolean; profile?: any }> {

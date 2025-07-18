@@ -20,7 +20,14 @@ export function useFriends() {
     if (!user?.id) return;
     
     try {
-      // Test user profile first
+      // Ensure user profile exists first
+      const profileEnsured = await FriendsService.ensureUserProfile(user);
+      if (!profileEnsured) {
+        console.error('Failed to ensure user profile exists');
+        return;
+      }
+      
+      // Test user profile
       const profileTest = await FriendsService.testUserProfile(user.id);
       console.log('Profile test result:', profileTest);
       
