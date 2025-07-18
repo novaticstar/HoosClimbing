@@ -11,10 +11,11 @@ import { spacing, ThemedText, useTheme } from '../theme/ui';
 
 interface FriendCardProps {
   user: User;
-  type: 'friend' | 'suggestion' | 'pending';
+  type: 'friend' | 'suggestion' | 'pending' | 'sent';
   onAddFriend?: (userId: string) => Promise<boolean>;
   onAcceptFriend?: (userId: string) => Promise<boolean>;
   onRemoveFriend?: (userId: string) => Promise<boolean>;
+  onCancelRequest?: (userId: string) => Promise<boolean>;
 }
 
 export function FriendCard({ 
@@ -22,7 +23,8 @@ export function FriendCard({
   type, 
   onAddFriend, 
   onAcceptFriend, 
-  onRemoveFriend 
+  onRemoveFriend,
+  onCancelRequest
 }: FriendCardProps) {
   const { colors } = useTheme();
 
@@ -70,6 +72,30 @@ export function FriendCard({
     );
   };
 
+  const handleCancelRequest = () => {
+    if (!onCancelRequest) return;
+    
+    Alert.alert(
+      'Cancel Friend Request',
+      `Cancel friend request to ${user.username || user.full_name || 'this user'}?`,
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Cancel Request',
+          style: 'destructive',
+          onPress: async () => {
+            const success = await onCancelRequest(user.id);
+            if (success) {
+              Alert.alert('Success', 'Friend request cancelled');
+            } else {
+              Alert.alert('Error', 'Failed to cancel friend request. Please try again.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const getDisplayName = () => {
     return user.username || user.full_name || user.email.split('@')[0];
   };
@@ -97,6 +123,15 @@ export function FriendCard({
             onPress={handleAcceptFriend}
           >
             <Ionicons name="checkmark" size={16} color={colors.onPrimary} />
+          </TouchableOpacity>
+        );
+      case 'sent':
+        return (
+          <TouchableOpacity 
+            style={[styles.actionButton, { backgroundColor: colors.warning }]}
+            onPress={handleCancelRequest}
+          >
+            <Ionicons name="time" size={16} color={colors.onPrimary} />
           </TouchableOpacity>
         );
       case 'friend':

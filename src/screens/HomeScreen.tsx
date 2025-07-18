@@ -19,11 +19,13 @@ export default function HomeScreen() {
     friends, 
     suggestedUsers, 
     pendingRequests, 
+    sentRequests,
     loading, 
     refreshing,
     sendFriendRequest,
     acceptFriendRequest,
     removeFriend,
+    cancelFriendRequest,
     refresh
   } = useFriends();
 
@@ -32,8 +34,8 @@ export default function HomeScreen() {
   const openMenu = () => setMenuVisible(true);
   const closeMenu = () => setMenuVisible(false);
 
-  const displayUsers = friends.length > 0 ? friends : suggestedUsers;
   const hasPendingRequests = pendingRequests.length > 0;
+  const hasSentRequests = sentRequests.length > 0;
 
 
   return (
@@ -126,44 +128,94 @@ export default function HomeScreen() {
               </View>
             )}
 
-            {/* Friends or Suggested Users */}
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.friendsList}
-            >
-              {loading ? (
-                // Loading placeholder
-                [1, 2, 3, 4].map((item) => (
-                  <View key={item} style={styles.friendItem}>
-                    <View style={[styles.friendAvatar, { backgroundColor: colors.surfaceVariant }]}>
-                      <ThemedText variant="h3" color="textSecondary">
-                        👤
+            {/* Sent Friend Requests */}
+            {hasSentRequests && (
+              <View style={styles.pendingSection}>
+                <ThemedText variant="body" color="text" style={styles.pendingTitle}>
+                  Sent Requests
+                </ThemedText>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.friendsList}
+                >
+                  {sentRequests.map((user) => (
+                    <FriendCard
+                      key={user.id}
+                      user={user}
+                      type="sent"
+                      onCancelRequest={cancelFriendRequest}
+                    />
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Current Friends */}
+            {friends.length > 0 && (
+              <View style={styles.pendingSection}>
+                <ThemedText variant="body" color="text" style={styles.pendingTitle}>
+                  Your Friends
+                </ThemedText>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.friendsList}
+                >
+                  {friends.map((user) => (
+                    <FriendCard
+                      key={user.id}
+                      user={user}
+                      type="friend"
+                      onRemoveFriend={removeFriend}
+                    />
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Suggested Users */}
+            <View style={styles.pendingSection}>
+              <ThemedText variant="body" color="text" style={styles.pendingTitle}>
+                {friends.length > 0 ? 'People You May Know' : 'Find Friends'}
+              </ThemedText>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.friendsList}
+              >
+                {loading ? (
+                  // Loading placeholder
+                  [1, 2, 3, 4].map((item) => (
+                    <View key={item} style={styles.friendItem}>
+                      <View style={[styles.friendAvatar, { backgroundColor: colors.surfaceVariant }]}>
+                        <ThemedText variant="h3" color="textSecondary">
+                          👤
+                        </ThemedText>
+                      </View>
+                      <ThemedText variant="caption" color="text" style={styles.friendLabel}>
+                        Loading...
                       </ThemedText>
                     </View>
-                    <ThemedText variant="caption" color="text" style={styles.friendLabel}>
-                      Loading...
+                  ))
+                ) : suggestedUsers.length > 0 ? (
+                  suggestedUsers.map((user) => (
+                    <FriendCard
+                      key={user.id}
+                      user={user}
+                      type="suggestion"
+                      onAddFriend={sendFriendRequest}
+                    />
+                  ))
+                ) : (
+                  <View style={styles.emptyState}>
+                    <ThemedText variant="body" color="textSecondary">
+                      No suggestions available
                     </ThemedText>
                   </View>
-                ))
-              ) : displayUsers.length > 0 ? (
-                displayUsers.map((user) => (
-                  <FriendCard
-                    key={user.id}
-                    user={user}
-                    type={friends.length > 0 ? 'friend' : 'suggestion'}
-                    onAddFriend={sendFriendRequest}
-                    onRemoveFriend={removeFriend}
-                  />
-                ))
-              ) : (
-                <View style={styles.emptyState}>
-                  <ThemedText variant="body" color="textSecondary">
-                    No users found
-                  </ThemedText>
-                </View>
-              )}
-            </ScrollView>
+                )}
+              </ScrollView>
+            </View>
           </View>
 
           {/* Feed Section */}

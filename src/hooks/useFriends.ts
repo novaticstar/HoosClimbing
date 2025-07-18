@@ -12,6 +12,7 @@ export function useFriends() {
   const [friends, setFriends] = useState<User[]>([]);
   const [suggestedUsers, setSuggestedUsers] = useState<User[]>([]);
   const [pendingRequests, setPendingRequests] = useState<User[]>([]);
+  const [sentRequests, setSentRequests] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -19,15 +20,21 @@ export function useFriends() {
     if (!user?.id) return;
     
     try {
-      const [friendsData, suggestionsData, pendingData] = await Promise.all([
+      // Test user profile first
+      const profileTest = await FriendsService.testUserProfile(user.id);
+      console.log('Profile test result:', profileTest);
+      
+      const [friendsData, suggestionsData, pendingData, sentData] = await Promise.all([
         FriendsService.getFriends(user.id),
         FriendsService.getSuggestedUsers(user.id, 8),
-        FriendsService.getPendingRequests(user.id)
+        FriendsService.getPendingRequests(user.id),
+        FriendsService.getSentRequests(user.id)
       ]);
 
       setFriends(friendsData);
       setSuggestedUsers(suggestionsData);
       setPendingRequests(pendingData);
+      setSentRequests(sentData);
     } catch (error) {
       console.error('Error loading friends data:', error);
     } finally {
@@ -37,12 +44,28 @@ export function useFriends() {
   };
 
   const sendFriendRequest = async (friendId: string) => {
-    if (!user?.id) return false;
+    if (!user?.id) {
+      console.error('No user ID available for sending friend request');
+      return false;
+    }
     
+    console.log('useFriends: Sending friend request from', user.id, 'to', friendId);
     const success = await FriendsService.sendFriendRequest(user.id, friendId);
     if (success) {
-      // Remove from suggested users
+      // Remove from suggested users and add to sent requests
       setSuggestedUsers(prev => prev.filter(u => u.id !== friendId));
+      await loadFriends(); // Refresh to show in sent requests
+    }
+    return success;
+  };
+
+  const cancelFriendRequest = async (friendId: string) => {
+    if (!user?.id) return false;
+    
+    const success = await FriendsService.cancelFriendRequest(user.id, friendId);
+    if (success) {
+      // Remove from sent requests and refresh suggestions
+      await loadFriends(); 
     }
     return success;
   };
@@ -82,11 +105,13 @@ export function useFriends() {
     friends,
     suggestedUsers,
     pendingRequests,
+    sentRequests,
     loading,
     refreshing,
     sendFriendRequest,
     acceptFriendRequest,
     removeFriend,
+    cancelFriendRequest,
     refresh,
   };
 }

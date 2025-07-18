@@ -26,6 +26,31 @@ export interface Friendship {
 
 export class FriendsService {
   /**
+   * Test database connectivity and user profile existence
+   */
+  static async testUserProfile(userId: string): Promise<{ exists: boolean; profile?: any }> {
+    try {
+      console.log('Testing profile for user:', userId);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+        
+      if (error) {
+        console.error('Error checking user profile:', error);
+        return { exists: false };
+      }
+      
+      console.log('User profile found:', data);
+      return { exists: true, profile: data };
+    } catch (error) {
+      console.error('Exception checking user profile:', error);
+      return { exists: false };
+    }
+  }
+
+  /**
    * Get all friends for the current user
    */
   static async getFriends(userId: string): Promise<User[]> {
@@ -123,7 +148,42 @@ export class FriendsService {
    */
   static async sendFriendRequest(userId: string, friendId: string): Promise<boolean> {
     try {
-      const { error } = await supabase
+      console.log('Sending friend request from', userId, 'to', friendId);
+      
+      // First check if both users exist in profiles table
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .in('id', [userId, friendId]);
+        
+      if (profileError) {
+        console.error('Error checking profiles:', profileError);
+        return false;
+      }
+      
+      if (!profiles || profiles.length !== 2) {
+        console.error('One or both users not found in profiles table');
+        return false;
+      }
+      
+      // Check if friendship already exists
+      const { data: existingFriendship, error: checkError } = await supabase
+        .from('friendships')
+        .select('id, status')
+        .or(`and(user_id.eq.${userId},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${userId})`)
+        .limit(1);
+        
+      if (checkError) {
+        console.error('Error checking existing friendship:', checkError);
+        return false;
+      }
+      
+      if (existingFriendship && existingFriendship.length > 0) {
+        console.error('Friendship already exists with status:', existingFriendship[0].status);
+        return false;
+      }
+      
+      const { data, error } = await supabase
         .from('friendships')
         .insert({
           user_id: userId,
@@ -131,7 +191,17 @@ export class FriendsService {
           status: 'pending'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Detailed error sending friend request:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+      
+      console.log('Friend request sent successfully:', data);
       return true;
     } catch (error) {
       console.error('Error sending friend request:', error);
@@ -214,6 +284,56 @@ export class FriendsService {
     } catch (error) {
       console.error('Error fetching pending requests:', error);
       return [];
+    }
+  }
+
+  /**
+   * Get sent friend requests (outgoing requests)
+   */
+  static async getSentRequests(userId: string): Promise<User[]> {
+    try {
+      const { data, error } = await supabase
+        .from('friendships')
+        .select(`
+          friend_id,
+          friend:profiles!friendships_friend_id_fkey(
+            id,
+            email,
+            username,
+            full_name,
+            avatar_url,
+            created_at
+          )
+        `)
+        .eq('user_id', userId)
+        .eq('status', 'pending');
+
+      if (error) throw error;
+
+      return data?.map(item => item.friend as unknown as User).filter(Boolean) || [];
+    } catch (error) {
+      console.error('Error fetching sent requests:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Cancel a sent friend request
+   */
+  static async cancelFriendRequest(userId: string, friendId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('friendships')
+        .delete()
+        .eq('user_id', userId)
+        .eq('friend_id', friendId)
+        .eq('status', 'pending');
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error cancelling friend request:', error);
+      return false;
     }
   }
 }
