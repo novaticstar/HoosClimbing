@@ -24,12 +24,19 @@ export function useFriends() {
       const profileEnsured = await FriendsService.ensureUserProfile(user);
       if (!profileEnsured) {
         console.error('Failed to ensure user profile exists');
+        setLoading(false);
+        setRefreshing(false);
         return;
       }
       
-      // Test user profile
-      const profileTest = await FriendsService.testUserProfile(user.id);
-      console.log('Profile test result:', profileTest);
+      // Debug: List all profiles and create test users if needed
+      const allProfiles = await FriendsService.listAllProfiles();
+      console.log('Total profiles in database:', allProfiles.length);
+      
+      if (allProfiles.length < 3) {
+        console.log('Creating test users for development...');
+        await FriendsService.createTestUsers();
+      }
       
       const [friendsData, suggestionsData, pendingData, sentData] = await Promise.all([
         FriendsService.getFriends(user.id),

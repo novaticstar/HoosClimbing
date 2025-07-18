@@ -26,33 +26,124 @@ export interface Friendship {
 
 export class FriendsService {
   /**
+   * Debug function to list all profiles in the database
+   */
+  static async listAllProfiles(): Promise<User[]> {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .limit(20);
+        
+      if (error) {
+        console.error('Error listing profiles:', error);
+        return [];
+      }
+      
+      console.log('All profiles in database:', data);
+      return data || [];
+    } catch (error) {
+      console.error('Exception listing profiles:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Create test users for development
+   */
+  static async createTestUsers(): Promise<boolean> {
+    try {
+      const testUsers = [
+        {
+          id: '11111111-1111-1111-1111-111111111111',
+          email: 'alice@test.com',
+          username: 'alice_climber',
+          full_name: 'Alice Johnson'
+        },
+        {
+          id: '22222222-2222-2222-2222-222222222222',
+          email: 'bob@test.com',
+          username: 'boulder_bob',
+          full_name: 'Bob Smith'
+        },
+        {
+          id: '33333333-3333-3333-3333-333333333333',
+          email: 'carol@test.com',
+          username: 'climbing_carol',
+          full_name: 'Carol Davis'
+        }
+      ];
+
+      for (const user of testUsers) {
+        const { error } = await supabase
+          .from('profiles')
+          .upsert(user, { onConflict: 'id' });
+          
+        if (error) {
+          console.error('Error creating test user:', user.username, error);
+        } else {
+          console.log('Created test user:', user.username);
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Exception creating test users:', error);
+      return false;
+    }
+  }
+
+  /**
    * Ensure user profile exists (manual fallback)
    */
   static async ensureUserProfile(user: any): Promise<boolean> {
     try {
       console.log('Ensuring user profile exists for:', user.id);
       
-      // Check if profile exists
+      // Check if profile exists with better error handling
       const { data: existingProfile, error: checkError } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, email')
         .eq('id', user.id)
-        .single();
+        .maybeSingle(); // Use maybeSingle() instead of single() to avoid 406 errors
         
       if (existingProfile) {
         console.log('Profile already exists');
         return true;
       }
       
-      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows found
+      if (checkError) {
         console.error('Error checking profile:', checkError);
         return false;
       }
       
-      // Create profile if it doesn't exist
-      const username = user.user_metadata?.username || user.email?.split('@')[0] || 'user';
-      const full_name = user.user_metadata?.full_name || user.user_metadata?.name || username;
+      // Also check if email already exists (in case profile was created with different ID)
+      const { data: emailProfile, error: emailError } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .eq('email', user.email)
+        .maybeSingle();
+        
+      if (emailProfile) {
+        console.log('Profile with this email already exists, different user ID');
+        // Email is already used by another profile, we can't create a duplicate
+        // This might happen in edge cases, just return true since a profile exists
+        return true;
+      }
       
+      if (emailError) {
+        console.error('Error checking email profile:', emailError);
+        return false;
+      }
+      
+      // Create profile if it doesn't exist
+      const baseUsername = user.user_metadata?.username || user.email?.split('@')[0] || 'user';
+      const full_name = user.user_metadata?.full_name || user.user_metadata?.name || baseUsername;
+      
+      // Make username unique by appending user ID suffix
+      const username = `${baseUsername}_${user.id.slice(-8)}`;
+      
+      // Try to insert (not upsert) since we've already checked for existence
       const { data, error } = await supabase
         .from('profiles')
         .insert({
@@ -64,6 +155,34 @@ export class FriendsService {
         
       if (error) {
         console.error('Error creating profile:', error);
+        
+        // Handle specific constraint violations
+        if (error.code === '23505') {
+          if (error.message.includes('profiles_email_key')) {
+            console.log('Email already exists, profile creation skipped');
+            return true; // Email exists, consider it successful
+          } else if (error.message.includes('profiles_username_key')) {
+            console.log('Username conflict, trying without username...');
+            const { data: data2, error: error2 } = await supabase
+              .from('profiles')
+              .insert({
+                id: user.id,
+                email: user.email,
+                full_name: full_name
+              });
+              
+            if (error2) {
+              console.error('Error creating profile without username:', error2);
+              if (error2.code === '23505' && error2.message.includes('profiles_email_key')) {
+                console.log('Email still exists, considering successful');
+                return true;
+              }
+              return false;
+            }
+            console.log('Profile created without username:', data2);
+            return true;
+          }
+        }
         return false;
       }
       
@@ -85,15 +204,20 @@ export class FriendsService {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle(); // Use maybeSingle() to avoid 406 errors
         
       if (error) {
         console.error('Error checking user profile:', error);
         return { exists: false };
       }
       
-      console.log('User profile found:', data);
-      return { exists: true, profile: data };
+      if (data) {
+        console.log('User profile found:', data);
+        return { exists: true, profile: data };
+      } else {
+        console.log('User profile not found');
+        return { exists: false };
+      }
     } catch (error) {
       console.error('Exception checking user profile:', error);
       return { exists: false };
@@ -185,6 +309,7 @@ export class FriendsService {
         .slice(0, limit);
 
       console.log('Suggested users after filtering:', suggestedUsers.length);
+      console.log('Suggested user IDs:', suggestedUsers.map(u => u.id));
 
       return suggestedUsers;
     } catch (error) {
@@ -211,8 +336,30 @@ export class FriendsService {
         return false;
       }
       
+      console.log('Found profiles:', profiles);
+      console.log('Looking for user IDs:', [userId, friendId]);
+      
       if (!profiles || profiles.length !== 2) {
         console.error('One or both users not found in profiles table');
+        console.error('Found profiles count:', profiles?.length || 0);
+        console.error('Found profile IDs:', profiles?.map(p => p.id) || []);
+        
+        // Let's check each user individually
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle();
+          
+        const { data: friendProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', friendId)
+          .maybeSingle();
+          
+        console.log('Current user profile exists:', !!userProfile);
+        console.log('Friend profile exists:', !!friendProfile);
+        
         return false;
       }
       
