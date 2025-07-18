@@ -2,30 +2,48 @@
  * Home Screen
  */
 
-import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth  } from '../context/AuthContext';
+import React, { useState } from 'react';
+import { Dimensions, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Menu } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { FriendCard } from '../components/FriendCard';
+import { useAuth } from '../context/AuthContext';
+import { useFriends } from '../hooks/useFriends';
 import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
-import { Dimensions } from 'react-native';
-
-import { useState } from 'react';
-import { Menu, Provider } from 'react-native-paper';
 
 export default function HomeScreen() {
   const { colors } = useTheme();
   const { user, signOut } = useAuth();
+  const { 
+    friends, 
+    suggestedUsers, 
+    pendingRequests, 
+    loading, 
+    refreshing,
+    sendFriendRequest,
+    acceptFriendRequest,
+    removeFriend,
+    refresh
+  } = useFriends();
 
   const [menuVisible, setMenuVisible] = useState(false);
 
   const openMenu = () => setMenuVisible(true);
   const closeMenu = () => setMenuVisible(false);
 
+  const displayUsers = friends.length > 0 ? friends : suggestedUsers;
+  const hasPendingRequests = pendingRequests.length > 0;
+
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} />
+        }
+      >
         <Container style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
@@ -72,28 +90,79 @@ export default function HomeScreen() {
             <View style={styles.sectionHeader}>
               <ThemedText variant="h3" color="text">
                 Friends
+                {hasPendingRequests && (
+                  <View style={[styles.badge, { backgroundColor: colors.accent }]}>
+                    <ThemedText variant="caption" color="onAccent" style={styles.badgeText}>
+                      {pendingRequests.length}
+                    </ThemedText>
+                  </View>
+                )}
               </ThemedText>
               <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
                 →
               </ThemedText>
             </View>
+
+            {/* Pending Friend Requests */}
+            {hasPendingRequests && (
+              <View style={styles.pendingSection}>
+                <ThemedText variant="body" color="text" style={styles.pendingTitle}>
+                  Friend Requests
+                </ThemedText>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.friendsList}
+                >
+                  {pendingRequests.map((user) => (
+                    <FriendCard
+                      key={user.id}
+                      user={user}
+                      type="pending"
+                      onAcceptFriend={acceptFriendRequest}
+                    />
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Friends or Suggested Users */}
             <ScrollView 
               horizontal 
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.friendsList}
             >
-              {[1, 2, 3, 4].map((friend) => (
-                <View key={friend} style={styles.friendItem}>
-                  <View style={[styles.friendAvatar, { backgroundColor: colors.surfaceVariant }]}>
-                    <ThemedText variant="h3" color="textSecondary">
-                      👤
+              {loading ? (
+                // Loading placeholder
+                [1, 2, 3, 4].map((item) => (
+                  <View key={item} style={styles.friendItem}>
+                    <View style={[styles.friendAvatar, { backgroundColor: colors.surfaceVariant }]}>
+                      <ThemedText variant="h3" color="textSecondary">
+                        👤
+                      </ThemedText>
+                    </View>
+                    <ThemedText variant="caption" color="text" style={styles.friendLabel}>
+                      Loading...
                     </ThemedText>
                   </View>
-                  <ThemedText variant="caption" color="text" style={styles.friendLabel}>
-                    Label
+                ))
+              ) : displayUsers.length > 0 ? (
+                displayUsers.map((user) => (
+                  <FriendCard
+                    key={user.id}
+                    user={user}
+                    type={friends.length > 0 ? 'friend' : 'suggestion'}
+                    onAddFriend={sendFriendRequest}
+                    onRemoveFriend={removeFriend}
+                  />
+                ))
+              ) : (
+                <View style={styles.emptyState}>
+                  <ThemedText variant="body" color="textSecondary">
+                    No users found
                   </ThemedText>
                 </View>
-              ))}
+              )}
             </ScrollView>
           </View>
 
@@ -312,5 +381,33 @@ const styles = StyleSheet.create({
   },
   postLabel: {
     textAlign: 'center',
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -8,
+    backgroundColor: 'red',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  pendingSection: {
+    marginBottom: spacing.lg,
+  },
+  pendingTitle: {
+    marginBottom: spacing.md,
+    fontWeight: '600',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
   },
 });
