@@ -11,6 +11,10 @@
     "ios": {
       "supportsTablet": true
     },
+    "extra" : {
+      "EXPO_PUBLIC_SUPABASE_URL": "https://lszaovkgknpurhsjksqu.supabase.co/",
+      "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzemFvdmtna25wdXJoc2prc3F1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3NzY5MTYsImV4cCI6MjA2ODM1MjkxNn0.WFIfC7rzwj8RZHQ05b9dzu3a9vlwoHfq8qz-MmLeF9I"
+    },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
