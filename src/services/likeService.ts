@@ -29,7 +29,9 @@ export class LikeService {
    * Like a post
    */
   static async like(postId: string, userId: string): Promise<boolean> {
-    const { error } = await supabase.from('likes').insert({
+    const { error } = await supabase
+    .from('likes')
+    .insert({
       post_id: postId,
       user_id: userId,
     });
@@ -58,5 +60,22 @@ export class LikeService {
     }
 
     return true;
+  }
+
+/**
+ * Get all posts liked by user
+ */
+  static async getLikedPostIds(userId: string): Promise<string[]> {
+    const { data, error } = await supabase
+      .from('likes')
+      .select('post_id')
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error fetching liked post IDs:', error);
+      return [];
+    }
+
+    return data.map(row => row.post_id);
   }
 }

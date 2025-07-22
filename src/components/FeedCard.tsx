@@ -36,12 +36,16 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
       <View style={styles.postActions}>
         <TouchableOpacity
           onPress={() => onLike(post.id, post.likes)}
-          style={styles.actionButton}
-        >
-          <Ionicons name="heart-outline" size={20} color={colors.accent} />
-          <ThemedText variant="body" color="accent" style={styles.likeText}>
-            {post.likes}
-          </ThemedText>
+            style={styles.actionButton}
+          >
+            <Ionicons
+              name={post.hasLiked ? 'heart' : 'heart-outline'}
+              size={20}
+              color={post.hasLiked ? colors.accent : colors.textSecondary}
+            />
+            <ThemedText variant="body" color="accent" style={styles.likeText}>
+              {post.likes}
+            </ThemedText>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton}>
