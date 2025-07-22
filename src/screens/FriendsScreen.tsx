@@ -6,21 +6,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  Alert,
-  Modal,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View
+    Alert,
+    Modal,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useFriends } from '../hooks/useFriends';
 import { User } from '../services/friendsService';
-import UserProfileView from './UserProfileView';
 import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
+import UserProfileView from './UserProfileView';
 
 type TabType = 'friends' | 'requests' | 'suggestions';
 
@@ -87,7 +87,7 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
   };
 
   const handleRemoveFriend = () => {
-    if (!onRemoveFriend) return;
+    console.log('handleRemoveFriend called, onRemoveFriend:', !!onRemoveFriend);
     Alert.alert(
       'Friend Options',
       `What would you like to do with ${getDisplayName()}?`,
@@ -97,9 +97,13 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
           text: 'Unadd Friend',
           style: 'destructive',
           onPress: async () => {
-            const success = await onRemoveFriend(user.id);
-            if (!success) {
-              Alert.alert('Error', 'Failed to remove friend. Please try again.');
+            if (onRemoveFriend) {
+              const success = await onRemoveFriend(user.id);
+              if (!success) {
+                Alert.alert('Error', 'Failed to remove friend. Please try again.');
+              }
+            } else {
+              Alert.alert('Error', 'Remove friend function not available.');
             }
           }
         },

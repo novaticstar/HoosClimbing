@@ -18,6 +18,7 @@ const MAPPING = {
   'house.fill': 'home',
   'person.fill': 'person',
   'person.2.fill': 'group',
+  'plus': 'add',
   'heart.fill': 'favorite',
   'person.crop.circle.fill': 'account-circle',
   'paperplane.fill': 'send',

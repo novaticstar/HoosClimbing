@@ -12,12 +12,14 @@ import FeedScreen from '../screens/FeedScreen';
 import FriendsScreen from '../screens/FriendsScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import UploadScreen from '../screens/UploadScreen';
 import { uvaColors } from '../theme/colors';
 import { useTheme } from '../theme/ui';
 
 export type AppTabsParamList = {
   Home: undefined;
   Friends: undefined;
+  Upload: undefined;
   Feed: undefined;
   You: undefined;
 };
@@ -66,6 +68,16 @@ export default function AppTabs() {
           title: 'Friends',
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="person.2.fill" color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Upload"
+        component={UploadScreen}
+        options={{
+          title: 'Create',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="plus" color={color} />
           ),
         }}
       />
