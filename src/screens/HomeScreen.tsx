@@ -3,6 +3,8 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { Dimensions, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Menu } from 'react-native-paper';
@@ -10,10 +12,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { FriendCard } from '../components/FriendCard';
 import { useAuth } from '../context/AuthContext';
 import { useFriends } from '../hooks/useFriends';
-import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
 import type { AppTabsParamList } from '../navigation/AppTabs';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
-import { useNavigation } from '@react-navigation/native';
+import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
 export default function HomeScreen() {
   const { colors } = useTheme();
   const { user, signOut } = useAuth();
@@ -106,53 +106,6 @@ export default function HomeScreen() {
                 →
               </ThemedText>
             </View>
-
-            {/* Pending Friend Requests */}
-            {hasPendingRequests && (
-              <View style={styles.pendingSection}>
-                <ThemedText variant="body" color="text" style={styles.pendingTitle}>
-                  Friend Requests
-                </ThemedText>
-                <ScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.friendsList}
-                >
-                  {pendingRequests.map((user) => (
-                    <FriendCard
-                      key={user.id}
-                      user={user}
-                      type="pending"
-                      onAcceptFriend={acceptFriendRequest}
-                    />
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-
-            {/* Sent Friend Requests */}
-            {hasSentRequests && (
-              <View style={styles.pendingSection}>
-                <ThemedText variant="body" color="text" style={styles.pendingTitle}>
-                  Sent Requests
-                </ThemedText>
-                <ScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.friendsList}
-                >
-                  {sentRequests.map((user) => (
-                    <FriendCard
-                      key={user.id}
-                      user={user}
-                      type="sent"
-                      onCancelRequest={cancelFriendRequest}
-                    />
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-
             {/* Current Friends */}
             {friends.length > 0 && (
               <View style={styles.pendingSection}>
