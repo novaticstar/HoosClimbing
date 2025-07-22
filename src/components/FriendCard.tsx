@@ -4,7 +4,7 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useState } from 'react';
 import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { User } from '../services/friendsService';
 import { spacing, ThemedText, useTheme } from '../theme/ui';
@@ -27,6 +27,7 @@ export function FriendCard({
   onCancelRequest
 }: FriendCardProps) {
   const { colors } = useTheme();
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const handleAddFriend = async () => {
     if (!onAddFriend) return;
@@ -51,21 +52,35 @@ export function FriendCard({
   };
 
   const handleRemoveFriend = () => {
-    if (!onRemoveFriend) return;
-    
+    setShowDropdown(!showDropdown);
+  };
+
+  const handleUnadFriend = async () => {
+    setShowDropdown(false);
+    if (onRemoveFriend) {
+      const success = await onRemoveFriend(user.id);
+      if (!success) {
+        Alert.alert('Error', 'Failed to remove friend. Please try again.');
+      }
+    } else {
+      Alert.alert('Error', 'Remove friend function not available.');
+    }
+  };
+
+  const handleBlockUser = () => {
+    setShowDropdown(false);
+    const displayName = user.username || user.full_name || 'this user';
     Alert.alert(
-      'Remove Friend',
-      `Are you sure you want to remove ${user.username || user.full_name || 'this user'} as a friend?`,
+      'Block User',
+      `Are you sure you want to block ${displayName}? This will remove them as a friend and prevent them from contacting you.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Remove',
+          text: 'Block',
           style: 'destructive',
-          onPress: async () => {
-            const success = await onRemoveFriend(user.id);
-            if (!success) {
-              Alert.alert('Error', 'Failed to remove friend. Please try again.');
-            }
+          onPress: () => {
+            // Stub implementation for block feature
+            Alert.alert('User Blocked', `${displayName} has been blocked. This feature is coming soon!`);
           }
         }
       ]
@@ -100,6 +115,42 @@ export function FriendCard({
     return user.username || user.full_name || user.email.split('@')[0];
   };
 
+  const handleSuggestionOptions = () => {
+    const displayName = getDisplayName();
+    
+    Alert.alert(
+      'User Options',
+      `Options for ${displayName}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Add Friend',
+          onPress: handleAddFriend
+        },
+        {
+          text: 'Block User',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Block User', 
+              `Are you sure you want to block ${displayName}? They won't appear in your suggestions anymore.`,
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Block',
+                  style: 'destructive',
+                  onPress: () => {
+                    Alert.alert('User Blocked', `${displayName} has been blocked. This feature is coming soon!`);
+                  }
+                }
+              ]
+            );
+          }
+        }
+      ]
+    );
+  };
+
   const getAvatarText = () => {
     const name = getDisplayName();
     return name.charAt(0).toUpperCase();
@@ -109,12 +160,20 @@ export function FriendCard({
     switch (type) {
       case 'suggestion':
         return (
-          <TouchableOpacity 
-            style={[styles.actionButton, { backgroundColor: colors.primary }]}
-            onPress={handleAddFriend}
-          >
-            <Ionicons name="person-add" size={16} color={colors.onPrimary} />
-          </TouchableOpacity>
+          <View style={styles.actionButtons}>
+            <TouchableOpacity 
+              style={[styles.actionButton, { backgroundColor: colors.primary, position: 'relative' }]}
+              onPress={handleAddFriend}
+            >
+              <Ionicons name="person-add" size={16} color={colors.onPrimary} />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.actionButton, { backgroundColor: colors.surfaceVariant, position: 'relative' }]}
+              onPress={handleSuggestionOptions}
+            >
+              <Ionicons name="ellipsis-horizontal" size={16} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
         );
       case 'pending':
         return (
@@ -149,7 +208,7 @@ export function FriendCard({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { position: 'relative' }]}>
       <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
         {user.avatar_url ? (
           <View style={styles.avatarPlaceholder}>
@@ -167,6 +226,39 @@ export function FriendCard({
       <ThemedText variant="caption" color="text" style={styles.name}>
         {getDisplayName()}
       </ThemedText>
+      
+      {/* Dropdown Menu */}
+      {showDropdown && type === 'friend' && (
+        <>
+          {/* Backdrop to close dropdown */}
+          <TouchableOpacity
+            style={styles.dropdownBackdrop}
+            onPress={() => setShowDropdown(false)}
+            activeOpacity={0}
+          />
+          <View style={[styles.dropdown, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <TouchableOpacity
+              style={[styles.dropdownItem, { borderBottomColor: colors.border }]}
+              onPress={handleUnadFriend}
+            >
+              <Ionicons name="person-remove" size={18} color={colors.error} />
+              <ThemedText variant="body" color="error" style={styles.dropdownText}>
+                Unadd Friend
+              </ThemedText>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.dropdownItem}
+              onPress={handleBlockUser}
+            >
+              <Ionicons name="ban" size={18} color={colors.error} />
+              <ThemedText variant="body" color="error" style={styles.dropdownText}>
+                Block User
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
     </View>
   );
 }
@@ -205,8 +297,48 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'white',
   },
+  actionButtons: {
+    flexDirection: 'row',
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    gap: 4,
+  },
   name: {
     textAlign: 'center',
     width: '100%',
+  },
+  dropdown: {
+    position: 'absolute',
+    top: 70,
+    right: 0,
+    minWidth: 160,
+    borderRadius: 8,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 15,
+    zIndex: 99999,
+  },
+  dropdownBackdrop: {
+    position: 'absolute',
+    top: -2000,
+    left: -2000,
+    right: -2000,
+    bottom: -2000,
+    zIndex: 99998,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+  },
+  dropdownText: {
+    marginLeft: spacing.sm,
+    fontSize: 14,
   },
 });

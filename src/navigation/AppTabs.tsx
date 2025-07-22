@@ -9,13 +9,17 @@ import { HapticTab } from '../components/HapticTab';
 import { IconSymbol } from '../components/ui/IconSymbol';
 import TabBarBackground from '../components/ui/TabBarBackground';
 import FeedScreen from '../screens/FeedScreen';
+import FriendsScreen from '../screens/FriendsScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import UploadScreen from '../screens/UploadScreen';
 import { uvaColors } from '../theme/colors';
 import { useTheme } from '../theme/ui';
 
 export type AppTabsParamList = {
   Home: undefined;
+  Friends: undefined;
+  Upload: undefined;
   Feed: undefined;
   You: undefined;
 };
@@ -58,12 +62,32 @@ export default function AppTabs() {
         }}
       />
       <Tab.Screen
+        name="Friends"
+        component={FriendsScreen}
+        options={{
+          title: 'Friends',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="person.2.fill" color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Upload"
+        component={UploadScreen}
+        options={{
+          title: 'Create',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="plus" color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
         name="Feed"
         component={FeedScreen}
         options={{
           title: 'Feed',
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="paperplane.fill" color={color} />
+            <IconSymbol size={28} name="heart.fill" color={color} />
           ),
         }}
       />
@@ -73,7 +97,7 @@ export default function AppTabs() {
         options={{
           title: 'You',
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="chevron.left.forwardslash.chevron.right" color={color} />
+            <IconSymbol size={28} name="person.crop.circle.fill" color={color} />
           ),
         }}
       />

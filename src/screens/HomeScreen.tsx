@@ -3,6 +3,8 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { Dimensions, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Menu } from 'react-native-paper';
@@ -10,21 +12,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { FriendCard } from '../components/FriendCard';
 import { useAuth } from '../context/AuthContext';
 import { useFriends } from '../hooks/useFriends';
-import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
 import type { AppTabsParamList } from '../navigation/AppTabs';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
-import { useNavigation } from '@react-navigation/native';
+import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
 export default function HomeScreen() {
   const { colors } = useTheme();
   const { user, signOut } = useAuth();
   const { 
     friends, 
-    suggestedUsers, 
     pendingRequests, 
     sentRequests,
     loading, 
     refreshing,
-    sendFriendRequest,
     acceptFriendRequest,
     removeFriend,
     cancelFriendRequest,
@@ -63,6 +61,13 @@ export default function HomeScreen() {
               <View style={styles.headerButtons}>
                 <TouchableOpacity style={styles.headerButton}>
                   <Ionicons name="notifications-outline" size={24} color={colors.textSecondary} />
+                  {hasPendingRequests && (
+                    <View style={[styles.notificationBadge, { backgroundColor: colors.accent }]}>
+                      <ThemedText variant="caption" color="onAccent" style={styles.badgeText}>
+                        {pendingRequests.length}
+                      </ThemedText>
+                    </View>
+                  )}
                 </TouchableOpacity>
                 <Menu
                     visible={menuVisible}
@@ -91,78 +96,32 @@ export default function HomeScreen() {
 
           {/* Friends Section */}
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
+            <TouchableOpacity 
+              style={styles.sectionHeader}
+              onPress={() => navigation.navigate('Friends')}
+              activeOpacity={0.7}
+            >
               <ThemedText variant="h3" color="text">
                 Friends
-                {hasPendingRequests && (
-                  <View style={[styles.badge, { backgroundColor: colors.accent }]}>
-                    <ThemedText variant="caption" color="onAccent" style={styles.badgeText}>
-                      {pendingRequests.length}
-                    </ThemedText>
-                  </View>
-                )}
               </ThemedText>
               <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
                 →
               </ThemedText>
-            </View>
-
-            {/* Pending Friend Requests */}
-            {hasPendingRequests && (
-              <View style={styles.pendingSection}>
-                <ThemedText variant="body" color="text" style={styles.pendingTitle}>
-                  Friend Requests
-                </ThemedText>
-                <ScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.friendsList}
-                >
-                  {pendingRequests.map((user) => (
-                    <FriendCard
-                      key={user.id}
-                      user={user}
-                      type="pending"
-                      onAcceptFriend={acceptFriendRequest}
-                    />
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-
-            {/* Sent Friend Requests */}
-            {hasSentRequests && (
-              <View style={styles.pendingSection}>
-                <ThemedText variant="body" color="text" style={styles.pendingTitle}>
-                  Sent Requests
-                </ThemedText>
-                <ScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.friendsList}
-                >
-                  {sentRequests.map((user) => (
-                    <FriendCard
-                      key={user.id}
-                      user={user}
-                      type="sent"
-                      onCancelRequest={cancelFriendRequest}
-                    />
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-
+            </TouchableOpacity>
             {/* Current Friends */}
             {friends.length > 0 && (
               <View style={styles.pendingSection}>
-                <ThemedText variant="body" color="text" style={styles.pendingTitle}>
-                  Your Friends
-                </ThemedText>
+                <TouchableOpacity onPress={() => navigation.navigate('Friends')}>
+                  <ThemedText variant="body" color="text" style={styles.pendingTitle}>
+                    Your Friends
+                  </ThemedText>
+                </TouchableOpacity>
                 <ScrollView 
                   horizontal 
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.friendsList}
+                  nestedScrollEnabled={true}
+                  style={{ overflow: 'visible' }}
                 >
                   {friends.map((user) => (
                     <FriendCard
@@ -175,49 +134,6 @@ export default function HomeScreen() {
                 </ScrollView>
               </View>
             )}
-
-            {/* Suggested Users */}
-            <View style={styles.pendingSection}>
-              <ThemedText variant="body" color="text" style={styles.pendingTitle}>
-                {friends.length > 0 ? 'People You May Know' : 'Find Friends'}
-              </ThemedText>
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.friendsList}
-              >
-                {loading ? (
-                  // Loading placeholder
-                  [1, 2, 3, 4].map((item) => (
-                    <View key={item} style={styles.friendItem}>
-                      <View style={[styles.friendAvatar, { backgroundColor: colors.surfaceVariant }]}>
-                        <ThemedText variant="h3" color="textSecondary">
-                          👤
-                        </ThemedText>
-                      </View>
-                      <ThemedText variant="caption" color="text" style={styles.friendLabel}>
-                        Loading...
-                      </ThemedText>
-                    </View>
-                  ))
-                ) : suggestedUsers.length > 0 ? (
-                  suggestedUsers.map((user) => (
-                    <FriendCard
-                      key={user.id}
-                      user={user}
-                      type="suggestion"
-                      onAddFriend={sendFriendRequest}
-                    />
-                  ))
-                ) : (
-                  <View style={styles.emptyState}>
-                    <ThemedText variant="body" color="textSecondary">
-                      No suggestions available
-                    </ThemedText>
-                  </View>
-                )}
-              </ScrollView>
-            </View>
           </View>
 
           {/* Feed Section */}
@@ -359,6 +275,18 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
   },
   welcomeText: {
     // Welcome text styling
@@ -378,6 +306,7 @@ const styles = StyleSheet.create({
   },
   friendsList: {
     paddingRight: spacing.md,
+    overflow: 'visible',
   },
   friendItem: {
     alignItems: 'center',
@@ -452,11 +381,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   badgeText: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
   },
   pendingSection: {
     marginBottom: spacing.lg,
+    overflow: 'visible',
   },
   pendingTitle: {
     marginBottom: spacing.md,
