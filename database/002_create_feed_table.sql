@@ -5,7 +5,7 @@
 -- Create feed table
 create table if not exists public.feed (
   id uuid primary key default uuid_generate_v4(),
-  user_id uuid references auth.users on delete cascade,
+  user_id uuid references profiles.users on delete cascade,
   description text,
   likes integer default 0,
   created_at timestamptz default now(),
