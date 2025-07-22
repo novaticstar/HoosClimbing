@@ -61,6 +61,13 @@ export default function HomeScreen() {
               <View style={styles.headerButtons}>
                 <TouchableOpacity style={styles.headerButton}>
                   <Ionicons name="notifications-outline" size={24} color={colors.textSecondary} />
+                  {hasPendingRequests && (
+                    <View style={[styles.notificationBadge, { backgroundColor: colors.accent }]}>
+                      <ThemedText variant="caption" color="onAccent" style={styles.badgeText}>
+                        {pendingRequests.length}
+                      </ThemedText>
+                    </View>
+                  )}
                 </TouchableOpacity>
                 <Menu
                     visible={menuVisible}
@@ -273,6 +280,18 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
   },
   welcomeText: {
     // Welcome text styling

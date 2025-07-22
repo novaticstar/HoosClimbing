@@ -13,9 +13,22 @@ import { User } from '../services/friendsService';
 interface UserProfileViewProps {
   user: User;
   onClose: () => void;
+  friendshipStatus?: 'friend' | 'pending' | 'sent' | 'none';
+  onAddFriend?: (userId: string) => Promise<boolean>;
+  onRemoveFriend?: (userId: string) => Promise<boolean>;
+  onAcceptFriend?: (userId: string) => Promise<boolean>;
+  onCancelRequest?: (userId: string) => Promise<boolean>;
 }
 
-export default function UserProfileView({ user, onClose }: UserProfileViewProps) {
+export default function UserProfileView({ 
+  user, 
+  onClose, 
+  friendshipStatus = 'none',
+  onAddFriend,
+  onRemoveFriend,
+  onAcceptFriend,
+  onCancelRequest
+}: UserProfileViewProps) {
   const { colors } = useTheme();
 
   const getDisplayName = () => {
@@ -25,6 +38,108 @@ export default function UserProfileView({ user, onClose }: UserProfileViewProps)
   const getAvatarText = () => {
     const name = getDisplayName();
     return name.charAt(0).toUpperCase();
+  };
+
+  const handleAddFriend = async () => {
+    if (onAddFriend) {
+      const success = await onAddFriend(user.id);
+      if (success) {
+        // The parent component should handle UI updates
+      }
+    }
+  };
+
+  const handleAcceptFriend = async () => {
+    if (onAcceptFriend) {
+      const success = await onAcceptFriend(user.id);
+      if (success) {
+        // The parent component should handle UI updates
+      }
+    }
+  };
+
+  const handleCancelRequest = async () => {
+    if (onCancelRequest) {
+      const success = await onCancelRequest(user.id);
+      if (success) {
+        // The parent component should handle UI updates
+      }
+    }
+  };
+
+  const renderActionButtons = () => {
+    switch (friendshipStatus) {
+      case 'friend':
+        return (
+          <>
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.primaryButton, { backgroundColor: colors.primary }]}
+            >
+              <Ionicons name="chatbubble" size={20} color={colors.onPrimary} />
+              <ThemedText variant="body" color="onPrimary" style={styles.buttonText}>
+                Message
+              </ThemedText>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
+            >
+              <Ionicons name="person-remove" size={20} color={colors.error} />
+              <ThemedText variant="body" color="error" style={styles.buttonText}>
+                Unfriend
+              </ThemedText>
+            </TouchableOpacity>
+          </>
+        );
+      case 'pending':
+        return (
+          <>
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.primaryButton, { backgroundColor: colors.success }]}
+              onPress={handleAcceptFriend}
+            >
+              <Ionicons name="checkmark" size={20} color={colors.onPrimary} />
+              <ThemedText variant="body" color="onPrimary" style={styles.buttonText}>
+                Accept
+              </ThemedText>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
+            >
+              <Ionicons name="close" size={20} color={colors.text} />
+              <ThemedText variant="body" color="text" style={styles.buttonText}>
+                Decline
+              </ThemedText>
+            </TouchableOpacity>
+          </>
+        );
+      case 'sent':
+        return (
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
+            onPress={handleCancelRequest}
+          >
+            <Ionicons name="close" size={20} color={colors.text} />
+            <ThemedText variant="body" color="text" style={styles.buttonText}>
+              Cancel Request
+            </ThemedText>
+          </TouchableOpacity>
+        );
+      case 'none':
+      default:
+        return (
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.primaryButton, { backgroundColor: colors.primary }]}
+            onPress={handleAddFriend}
+          >
+            <Ionicons name="person-add" size={20} color={colors.onPrimary} />
+            <ThemedText variant="body" color="onPrimary" style={styles.buttonText}>
+              Add Friend
+            </ThemedText>
+          </TouchableOpacity>
+        );
+    }
   };
 
   return (
@@ -116,23 +231,7 @@ export default function UserProfileView({ user, onClose }: UserProfileViewProps)
 
           {/* Action Buttons */}
           <View style={styles.actionButtons}>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.messageButton, { backgroundColor: colors.primary }]}
-            >
-              <Ionicons name="chatbubble" size={20} color={colors.onPrimary} />
-              <ThemedText variant="body" color="onPrimary" style={styles.buttonText}>
-                Message
-              </ThemedText>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
-            >
-              <Ionicons name="person-add" size={20} color={colors.text} />
-              <ThemedText variant="body" color="text" style={styles.buttonText}>
-                Add Friend
-              </ThemedText>
-            </TouchableOpacity>
+            {renderActionButtons()}
           </View>
         </Container>
       </ScrollView>
@@ -231,6 +330,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   messageButton: {},
+  primaryButton: {},
   secondaryButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,

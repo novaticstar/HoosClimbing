@@ -46,6 +46,7 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
   onCancelRequest,
 }) => {
   const { colors } = useTheme();
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const getDisplayName = () => {
     return user.username || user.full_name || user.email?.split('@')[0] || 'Unknown';
@@ -87,45 +88,34 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
   };
 
   const handleRemoveFriend = () => {
-    console.log('handleRemoveFriend called, onRemoveFriend:', !!onRemoveFriend);
+    setShowDropdown(!showDropdown);
+  };
+
+  const handleUnadFriend = async () => {
+    setShowDropdown(false);
+    if (onRemoveFriend) {
+      const success = await onRemoveFriend(user.id);
+      if (!success) {
+        Alert.alert('Error', 'Failed to remove friend. Please try again.');
+      }
+    } else {
+      Alert.alert('Error', 'Remove friend function not available.');
+    }
+  };
+
+  const handleBlockUser = () => {
+    setShowDropdown(false);
     Alert.alert(
-      'Friend Options',
-      `What would you like to do with ${getDisplayName()}?`,
+      'Block User',
+      `Are you sure you want to block ${getDisplayName()}? This will remove them as a friend and prevent them from contacting you.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Unadd Friend',
-          style: 'destructive',
-          onPress: async () => {
-            if (onRemoveFriend) {
-              const success = await onRemoveFriend(user.id);
-              if (!success) {
-                Alert.alert('Error', 'Failed to remove friend. Please try again.');
-              }
-            } else {
-              Alert.alert('Error', 'Remove friend function not available.');
-            }
-          }
-        },
-        {
-          text: 'Block User',
+          text: 'Block',
           style: 'destructive',
           onPress: () => {
-            Alert.alert(
-              'Block User',
-              `Are you sure you want to block ${getDisplayName()}? This will remove them as a friend and prevent them from contacting you.`,
-              [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                  text: 'Block',
-                  style: 'destructive',
-                  onPress: () => {
-                    // Stub implementation for block feature
-                    Alert.alert('User Blocked', `${getDisplayName()} has been blocked. This feature is coming soon!`);
-                  }
-                }
-              ]
-            );
+            // Stub implementation for block feature
+            Alert.alert('User Blocked', `${getDisplayName()} has been blocked. This feature is coming soon!`);
           }
         }
       ]
@@ -296,36 +286,71 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
   };
 
   return (
-    <Card style={styles.friendItem}>
-      <View style={styles.friendInfo}>
-        <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-          <ThemedText variant="h4" color="onPrimary">
-            {getAvatarText()}
-          </ThemedText>
+    <View style={{ position: 'relative' }}>
+      <Card style={styles.friendItem}>
+        <View style={styles.friendInfo}>
+          <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+            <ThemedText variant="h4" color="onPrimary">
+              {getAvatarText()}
+            </ThemedText>
+          </View>
+          <View style={styles.userDetails}>
+            <ThemedText variant="h4" color="text">
+              {getDisplayName()}
+            </ThemedText>
+            {user.full_name && user.full_name !== getDisplayName() && (
+              <ThemedText variant="body" color="textSecondary">
+                {user.full_name}
+              </ThemedText>
+            )}
+            {type === 'pending' && (
+              <ThemedText variant="caption" color="accent">
+                Wants to be friends
+              </ThemedText>
+            )}
+            {type === 'sent' && (
+              <ThemedText variant="caption" color="warning">
+                Request sent
+              </ThemedText>
+            )}
+          </View>
         </View>
-        <View style={styles.userDetails}>
-          <ThemedText variant="h4" color="text">
-            {getDisplayName()}
-          </ThemedText>
-          {user.full_name && user.full_name !== getDisplayName() && (
-            <ThemedText variant="body" color="textSecondary">
-              {user.full_name}
-            </ThemedText>
-          )}
-          {type === 'pending' && (
-            <ThemedText variant="caption" color="accent">
-              Wants to be friends
-            </ThemedText>
-          )}
-          {type === 'sent' && (
-            <ThemedText variant="caption" color="warning">
-              Request sent
-            </ThemedText>
-          )}
-        </View>
-      </View>
-      {renderActionButtons()}
-    </Card>
+        {renderActionButtons()}
+      </Card>
+      
+      {/* Dropdown Menu */}
+      {showDropdown && type === 'friend' && (
+        <>
+          {/* Backdrop to close dropdown */}
+          <TouchableOpacity
+            style={styles.dropdownBackdrop}
+            onPress={() => setShowDropdown(false)}
+            activeOpacity={0}
+          />
+          <View style={[styles.dropdown, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <TouchableOpacity
+              style={[styles.dropdownItem, { borderBottomColor: colors.border }]}
+              onPress={handleUnadFriend}
+            >
+              <Ionicons name="person-remove" size={18} color={colors.error} />
+              <ThemedText variant="body" color="error" style={styles.dropdownText}>
+                Unadd Friend
+              </ThemedText>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.dropdownItem}
+              onPress={handleBlockUser}
+            >
+              <Ionicons name="ban" size={18} color={colors.error} />
+              <ThemedText variant="body" color="error" style={styles.dropdownText}>
+                Block User
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
+    </View>
   );
 };
 
@@ -359,6 +384,13 @@ export default function FriendsScreen() {
   const closeProfileModal = () => {
     setProfileModalVisible(false);
     setSelectedUser(null);
+  };
+
+  const getUserFriendshipStatus = (userId: string): 'friend' | 'pending' | 'sent' | 'none' => {
+    if (friends.some(f => f.id === userId)) return 'friend';
+    if (pendingRequests.some(r => r.id === userId)) return 'pending';
+    if (sentRequests.some(r => r.id === userId)) return 'sent';
+    return 'none';
   };
 
   const filterUsers = (users: User[]) => {
@@ -539,7 +571,15 @@ export default function FriendsScreen() {
         onRequestClose={closeProfileModal}
       >
         {selectedUser && (
-          <UserProfileView user={selectedUser} onClose={closeProfileModal} />
+          <UserProfileView 
+            user={selectedUser} 
+            onClose={closeProfileModal}
+            friendshipStatus={getUserFriendshipStatus(selectedUser.id)}
+            onAddFriend={sendFriendRequest}
+            onRemoveFriend={removeFriend}
+            onAcceptFriend={acceptFriendRequest}
+            onCancelRequest={cancelFriendRequest}
+          />
         )}
       </Modal>
     </SafeAreaView>
@@ -683,5 +723,38 @@ const styles = StyleSheet.create({
   emptyDescription: {
     textAlign: 'center',
     maxWidth: 280,
+  },
+  dropdown: {
+    position: 'absolute',
+    top: '100%',
+    right: 0,
+    minWidth: 160,
+    borderRadius: 8,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 10,
+    zIndex: 9999,
+  },
+  dropdownBackdrop: {
+    position: 'absolute',
+    top: -1000,
+    left: -1000,
+    right: -1000,
+    bottom: -1000,
+    zIndex: 9998,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+  },
+  dropdownText: {
+    marginLeft: spacing.sm,
+    fontSize: 14,
   },
 });

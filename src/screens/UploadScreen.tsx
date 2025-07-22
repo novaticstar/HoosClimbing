@@ -6,6 +6,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { uvaColors } from '../theme/colors';
 import { spacing, ThemedText, useTheme } from '../theme/ui';
 
@@ -27,8 +28,11 @@ export default function UploadScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={styles.content}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView 
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <ThemedText style={styles.title}>Create Content</ThemedText>
           <ThemedText style={[styles.subtitle, { color: colors.textSecondary }]}>
@@ -96,7 +100,7 @@ export default function UploadScreen() {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
