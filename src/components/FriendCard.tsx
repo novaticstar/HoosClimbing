@@ -53,19 +53,42 @@ export function FriendCard({
   const handleRemoveFriend = () => {
     if (!onRemoveFriend) return;
     
+    const displayName = user.username || user.full_name || 'this user';
+    
     Alert.alert(
-      'Remove Friend',
-      `Are you sure you want to remove ${user.username || user.full_name || 'this user'} as a friend?`,
+      'Friend Options',
+      `What would you like to do with ${displayName}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Remove',
+          text: 'Unadd Friend',
           style: 'destructive',
           onPress: async () => {
             const success = await onRemoveFriend(user.id);
             if (!success) {
               Alert.alert('Error', 'Failed to remove friend. Please try again.');
             }
+          }
+        },
+        {
+          text: 'Block User',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Block User',
+              `Are you sure you want to block ${displayName}? This will remove them as a friend and prevent them from contacting you.`,
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Block',
+                  style: 'destructive',
+                  onPress: () => {
+                    // Stub implementation for block feature
+                    Alert.alert('User Blocked', `${displayName} has been blocked. This feature is coming soon!`);
+                  }
+                }
+              ]
+            );
           }
         }
       ]
@@ -100,6 +123,42 @@ export function FriendCard({
     return user.username || user.full_name || user.email.split('@')[0];
   };
 
+  const handleSuggestionOptions = () => {
+    const displayName = getDisplayName();
+    
+    Alert.alert(
+      'User Options',
+      `Options for ${displayName}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Add Friend',
+          onPress: handleAddFriend
+        },
+        {
+          text: 'Block User',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Block User', 
+              `Are you sure you want to block ${displayName}? They won't appear in your suggestions anymore.`,
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Block',
+                  style: 'destructive',
+                  onPress: () => {
+                    Alert.alert('User Blocked', `${displayName} has been blocked. This feature is coming soon!`);
+                  }
+                }
+              ]
+            );
+          }
+        }
+      ]
+    );
+  };
+
   const getAvatarText = () => {
     const name = getDisplayName();
     return name.charAt(0).toUpperCase();
@@ -109,12 +168,20 @@ export function FriendCard({
     switch (type) {
       case 'suggestion':
         return (
-          <TouchableOpacity 
-            style={[styles.actionButton, { backgroundColor: colors.primary }]}
-            onPress={handleAddFriend}
-          >
-            <Ionicons name="person-add" size={16} color={colors.onPrimary} />
-          </TouchableOpacity>
+          <View style={styles.actionButtons}>
+            <TouchableOpacity 
+              style={[styles.actionButton, { backgroundColor: colors.primary, position: 'relative' }]}
+              onPress={handleAddFriend}
+            >
+              <Ionicons name="person-add" size={16} color={colors.onPrimary} />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.actionButton, { backgroundColor: colors.surfaceVariant, position: 'relative' }]}
+              onPress={handleSuggestionOptions}
+            >
+              <Ionicons name="ellipsis-horizontal" size={16} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
         );
       case 'pending':
         return (
@@ -204,6 +271,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: 'white',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    gap: 4,
   },
   name: {
     textAlign: 'center',
