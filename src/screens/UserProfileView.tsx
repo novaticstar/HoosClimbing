@@ -18,6 +18,7 @@ interface UserProfileViewProps {
   onRemoveFriend?: (userId: string) => Promise<boolean>;
   onAcceptFriend?: (userId: string) => Promise<boolean>;
   onCancelRequest?: (userId: string) => Promise<boolean>;
+  friendCount?: number;
 }
 
 export default function UserProfileView({ 
@@ -27,7 +28,8 @@ export default function UserProfileView({
   onAddFriend,
   onRemoveFriend,
   onAcceptFriend,
-  onCancelRequest
+  onCancelRequest,
+  friendCount = 0
 }: UserProfileViewProps) {
   const { colors } = useTheme();
 
@@ -181,16 +183,8 @@ export default function UserProfileView({
           {/* Stats */}
           <View style={styles.statsContainer}>
             <Card style={styles.statCard}>
-              <ThemedText variant="h3" color="primary">
-                0
-              </ThemedText>
-              <ThemedText variant="body" color="textSecondary">
-                Routes
-              </ThemedText>
-            </Card>
-            <Card style={styles.statCard}>
               <ThemedText variant="h3" color="accent">
-                0
+                {friendCount}
               </ThemedText>
               <ThemedText variant="body" color="textSecondary">
                 Friends

@@ -393,6 +393,13 @@ export default function FriendsScreen() {
     return 'none';
   };
 
+  const getUserFriendCount = (userId: string): number => {
+    // For now, we don't have access to the user's friend list
+    // In a real app, this would be fetched from the API
+    // For demonstration, return the current user's friend count as placeholder
+    return friends.length;
+  };
+
   const filterUsers = (users: User[]) => {
     if (!searchQuery) return users;
     const query = searchQuery.toLowerCase();
@@ -579,6 +586,7 @@ export default function FriendsScreen() {
             onRemoveFriend={removeFriend}
             onAcceptFriend={acceptFriendRequest}
             onCancelRequest={cancelFriendRequest}
+            friendCount={getUserFriendCount(selectedUser.id)}
           />
         )}
       </Modal>

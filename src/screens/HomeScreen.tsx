@@ -103,13 +103,6 @@ export default function HomeScreen() {
             >
               <ThemedText variant="h3" color="text">
                 Friends
-                {hasPendingRequests && (
-                  <View style={[styles.badge, { backgroundColor: colors.accent }]}>
-                    <ThemedText variant="caption" color="onAccent" style={styles.badgeText}>
-                      {pendingRequests.length}
-                    </ThemedText>
-                  </View>
-                )}
               </ThemedText>
               <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
                 →
@@ -127,6 +120,8 @@ export default function HomeScreen() {
                   horizontal 
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.friendsList}
+                  nestedScrollEnabled={true}
+                  style={{ overflow: 'visible' }}
                 >
                   {friends.map((user) => (
                     <FriendCard
@@ -284,14 +279,14 @@ const styles = StyleSheet.create({
   },
   notificationBadge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
+    top: 6,
+    right: 6,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
   },
   welcomeText: {
     // Welcome text styling
@@ -311,6 +306,7 @@ const styles = StyleSheet.create({
   },
   friendsList: {
     paddingRight: spacing.md,
+    overflow: 'visible',
   },
   friendItem: {
     alignItems: 'center',
@@ -385,11 +381,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   badgeText: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
   },
   pendingSection: {
     marginBottom: spacing.lg,
+    overflow: 'visible',
   },
   pendingTitle: {
     marginBottom: spacing.md,
