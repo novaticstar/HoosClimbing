@@ -3,12 +3,46 @@ import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Container, spacing, ThemedText, useTheme } from '../theme/ui';
 import { useAuth } from '../context/AuthContext';
+import { useFriends } from '../hooks/useFriends';
+import  { useState } from 'react';
+import { Modal, TextInput, Button, Text } from 'react-native'; // Add these
+import * as ImagePicker from 'expo-image-picker';
 export default function ProfileScreen() {
   const { colors } = useTheme();
+  const {friends } = useFriends();
 
   const mockPosts = Array(12).fill(require('../../assets/images/splash-icon.png')); // Mock post images
   const { user } = useAuth();
-  return (
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [bio, setBio] = useState('');
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [profilePicture, setProfilePicture] = useState(user?.user_metadata?.avatar_url || '');
+
+  async function pickImage() {
+    // Ask for permission first (especially on mobile)
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  
+    if (permissionResult.granted === false) {
+      alert("Permission to access media library is required!");
+      return;
+    }
+  
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'images',
+      allowsEditing: true,
+      aspect: [1, 1], // square crop
+      quality: 1,
+    });
+  
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+    }
+  }
+
+
+
+    return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView>
         <Container style={styles.content}>
@@ -40,24 +74,17 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.statItem}>
               <ThemedText variant="h3" color="text">
-                300
+                {friends.length}
               </ThemedText>
               <ThemedText variant="body" color="textSecondary">
-                Followers
+                Friends
               </ThemedText>
             </View>
-            <View style={styles.statItem}>
-              <ThemedText variant="h3" color="text">
-                180
-              </ThemedText>
-              <ThemedText variant="body" color="textSecondary">
-                Following
-              </ThemedText>
-            </View>
+            
           </View>
 
           {/* Edit Profile Button */}
-          <TouchableOpacity style={styles.editButton}>
+          <TouchableOpacity style={styles.editButton} onPress={() => setModalVisible(true)}>
             <ThemedText variant="body" color="accent">
               Edit Profile
             </ThemedText>
@@ -71,8 +98,47 @@ export default function ProfileScreen() {
           </View>
         </Container>
       </ScrollView>
+<Modal visible={modalVisible} animationType="slide" transparent={true}>
+  <View style={styles.modalContainer}>
+    <View style={styles.modalContent}>
+      <Text style={{ fontWeight: 'bold', marginBottom: 10 }}>Edit Profile</Text>
+
+      <TextInput
+        placeholder="Update bio"
+        value={bio}
+        onChangeText={setBio}
+        style={styles.input}
+      />
+
+       {/* Profile Pic Preview */}
+       {imageUri ? (
+        <Image source={{ uri: imageUri }} style={styles.previewImage} />
+      ) : (
+        <Text>No image selected</Text>
+      )}
+
+      {/* Button to open image picker */}
+      <TouchableOpacity onPress={pickImage} style={styles.pfp_button}>
+        <Text>Pick an image</Text>
+      </TouchableOpacity>
+
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Button title="Cancel" onPress={() => setModalVisible(false)} />
+        <Button title="Save" onPress={() => {
+          // Save logic here (save bio using the bio variable)
+          setModalVisible(false);
+        }} />
+      </View>
+    </View>
+  </View>
+</Modal>
+
     </SafeAreaView>
+
+    
   );
+
+  
 }
 
 const styles = StyleSheet.create({
@@ -99,11 +165,12 @@ const styles = StyleSheet.create({
   },
   stats: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     marginBottom: spacing.lg,
   },
   statItem: {
     alignItems: 'center',
+    marginHorizontal: spacing.md,
   },
   editButton: {
     alignSelf: 'center',
@@ -124,4 +191,44 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     borderRadius: 8,
   },
+
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  previewImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 10,
+  },
+  pfp_button: {
+    backgroundColor: '#ddd',
+    padding: 10,
+    marginTop: 10,
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  
 });

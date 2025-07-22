@@ -11,7 +11,9 @@ import { FriendCard } from '../components/FriendCard';
 import { useAuth } from '../context/AuthContext';
 import { useFriends } from '../hooks/useFriends';
 import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
-
+import type { AppTabsParamList } from '../navigation/AppTabs';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'
+import { useNavigation } from '@react-navigation/native';
 export default function HomeScreen() {
   const { colors } = useTheme();
   const { user, signOut } = useAuth();
@@ -28,7 +30,7 @@ export default function HomeScreen() {
     cancelFriendRequest,
     refresh
   } = useFriends();
-
+  const navigation = useNavigation<BottomTabNavigationProp<AppTabsParamList>>();
   const [menuVisible, setMenuVisible] = useState(false);
 
   const openMenu = () => setMenuVisible(true);
@@ -289,12 +291,16 @@ export default function HomeScreen() {
           {/* Your Posts Section */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
+            <TouchableOpacity onPress={() => navigation.navigate('You')}>
               <ThemedText variant="h3" color="text">
                 Your Posts 
               </ThemedText>
-              <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('You')}>
+                <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
                 →
-              </ThemedText>
+                </ThemedText>
+              </TouchableOpacity>
             </View>
             <View style={styles.postsGrid}>
               {[1, 2, 3, 4].map((post) => (

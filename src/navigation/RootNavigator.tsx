@@ -4,6 +4,7 @@
  */
 
 import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import * as Linking from 'expo-linking';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -11,7 +12,10 @@ import { useAuth } from '../context/AuthContext';
 import { Container, spacing, ThemedText } from '../theme/ui';
 import AppTabs from './AppTabs';
 import AuthStack from './AuthStack';
+import HomeScreen from '../screens/HomeScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
+const Stack = createStackNavigator();
 // Loading screen component
 function LoadingScreen() {
   return (
@@ -24,6 +28,7 @@ function LoadingScreen() {
     </Container>
   );
 }
+
 
 export default function RootNavigator() {
   const { session, loading } = useAuth();
