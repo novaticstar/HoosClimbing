@@ -22,6 +22,7 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
         <ThemedText variant="caption" color="textSecondary">
           {new Date(post.created_at).toLocaleString()}
         </ThemedText>
+
       </View>
 
       {/* Content */}
@@ -48,8 +49,6 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
           <ThemedText variant="body" color="textSecondary">Comment</ThemedText>
         </TouchableOpacity>
       </View>
-
-      {/* Comment Section */}
       <CommentSection postId={post.id} />
     </Card>
   );

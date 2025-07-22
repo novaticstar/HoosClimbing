@@ -95,3 +95,60 @@ create trigger comments_updated_at
 create index if not exists comments_post_id_idx on public.comments(post_id);
 create index if not exists comments_user_id_idx on public.comments(user_id);
 create index if not exists comments_created_at_idx on public.comments(created_at);
+
+-- Create likes table
+create table if not exists public.likes (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid references public.profiles on delete cascade,
+  post_id uuid references public.feed on delete cascade,
+  created_at timestamptz default now(),
+  unique (user_id, post_id) -- ensures one like per user per post
+);
+
+-- Enable RLS on likes table
+alter table public.likes enable row level security;
+
+-- Policy 1: Authenticated users can view likes
+create policy "Authenticated users can view likes"
+  on public.likes for select
+  using (true);
+
+-- Policy 2: Users can insert their own like
+create policy "Users can like a post"
+  on public.likes for insert
+  with check (auth.uid() = user_id);
+
+-- Policy 3: Users can remove their own like
+create policy "Users can unlike a post"
+  on public.likes for delete
+  using (auth.uid() = user_id);
+
+-- Function to update like count on feed
+create or replace function public.update_feed_like_count()
+returns trigger as $$
+begin
+  update public.feed
+  set likes = (
+    select count(*) from public.likes where post_id = new.post_id
+  ),
+  updated_at = now()
+  where id = new.post_id;
+  return new;
+end;
+$$ language plpgsql;
+
+-- Trigger: on insert (like added)
+create trigger likes_after_insert
+after insert on public.likes
+for each row
+execute function public.update_feed_like_count();
+
+-- Trigger: on delete (like removed)
+create trigger likes_after_delete
+after delete on public.likes
+for each row
+execute function public.update_feed_like_count();
+
+-- Indexes for fast lookup
+create index if not exists likes_user_id_idx on public.likes(user_id);
+create index if not exists likes_post_id_idx on public.likes(post_id);
