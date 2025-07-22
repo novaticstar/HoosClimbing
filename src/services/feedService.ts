@@ -8,7 +8,6 @@ import { supabase } from '../lib/supabase';
 export interface FeedItem {
   id: string;
   user_id: string;
-  title: string;
   description: string;
   likes: number;
   created_at: string;
@@ -30,7 +29,6 @@ export class FeedService {
         .select(`
           id,
           user_id,
-          title,
           description,
           likes,
           created_at,

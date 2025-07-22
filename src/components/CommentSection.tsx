@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { useTheme, spacing, ThemedText } from '../theme/ui';
 import { useAuth } from '../context/AuthContext';
-import { CommentService, Comment } from '../services/commentService';
+import { CommentService, Comment } from '../services/commentsService';
 
 type Props = {
   postId: string;
