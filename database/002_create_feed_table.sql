@@ -53,7 +53,7 @@ create index if not exists feed_created_at_idx on public.feed(created_at);
 create table if not exists public.comments (
   id uuid primary key default uuid_generate_v4(),
   post_id uuid references public.feed on delete cascade,
-  user_id uuid references auth.users on delete cascade,
+  user_id uuid references public.profiles on delete cascade,
   text text not null,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
