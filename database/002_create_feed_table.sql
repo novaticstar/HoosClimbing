@@ -77,6 +77,11 @@ create policy "Users can update their own comment"
   on public.comments for update
   using (auth.uid() = user_id);
 
+-- Policy 4: Users can delete their own comments
+create policy "Users can delete their own comment"
+  on public.comments for delete
+  using (auth.uid() = user_id);
+
 -- Function and trigger for comments.updated_at
 create or replace function public.handle_comment_updated_at()
 returns trigger as $$
