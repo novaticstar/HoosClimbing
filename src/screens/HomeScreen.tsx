@@ -36,7 +36,6 @@ export default function HomeScreen() {
   const closeMenu = () => setMenuVisible(false);
 
   const hasPendingRequests = pendingRequests.length > 0;
-  const hasSentRequests = sentRequests.length > 0;
 
   const { post: topPost, loading: topPostLoading } = useTopPost();
 
