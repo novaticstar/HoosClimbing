@@ -8,6 +8,7 @@ import { View, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { useTheme, spacing, ThemedText } from '../theme/ui';
 import { useAuth } from '../context/AuthContext';
 import { CommentService, Comment } from '../services/commentsService';
+import { Ionicons } from '@expo/vector-icons';
 
 type Props = {
   postId: string;
@@ -20,6 +21,8 @@ export function CommentSection({ postId, collapsed = false }: Props) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
 
   const fetchComments = async () => {
     setLoading(true);
@@ -41,6 +44,21 @@ export function CommentSection({ postId, collapsed = false }: Props) {
     }
   };
 
+  const handleEditComment = async (commentId: string) => {
+      if (!editText.trim()) return;
+      const success = await CommentService.updateComment(commentId, editText.trim());
+      if (success) {
+        setEditingCommentId(null);
+        setEditText('');
+        fetchComments();
+      }
+    };
+
+  const handleDeleteComment = async (commentId: string) => {
+      const success = await CommentService.deleteComment(commentId);
+      if (success) fetchComments();
+  };
+
   useEffect(() => {
     fetchComments();
   }, [collapsed]);
@@ -56,17 +74,55 @@ export function CommentSection({ postId, collapsed = false }: Props) {
           No comments yet.
         </ThemedText>
       ) : (
-        comments.map((comment) => (
-          <View key={comment.id} style={styles.commentItem}>
-            <ThemedText variant="caption" color="text">
-              {comment.profiles?.username || 'User'}:
-            </ThemedText>
-            <ThemedText variant="caption" color="textSecondary">
-              {comment.text}
-            </ThemedText>
-          </View>
-        ))
-      )}
+        comments.map((comment) => {
+                  const isOwn = comment.user_id === user.id;
+                  const isEditing = editingCommentId === comment.id;
+
+                  return (
+                    <View key={comment.id} style={styles.commentItem}>
+                      <View style={styles.commentHeader}>
+                        <ThemedText variant="caption" color="text">
+                          {comment.profiles?.username || 'User'}:
+                        </ThemedText>
+                        {isOwn && !isEditing && (
+                          <View style={styles.actions}>
+                            <TouchableOpacity onPress={() => {
+                              setEditingCommentId(comment.id);
+                              setEditText(comment.text);
+                            }}>
+                              <Ionicons name="pencil" size={16} color={colors.textSecondary} />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => handleDeleteComment(comment.id)}>
+                              <Ionicons name="trash" size={16} color={colors.error || 'red'} />
+                            </TouchableOpacity>
+                          </View>
+                        )}
+                      </View>
+
+                      {isEditing ? (
+                        <View style={styles.editRow}>
+                          <TextInput
+                            value={editText}
+                            onChangeText={setEditText}
+                            style={[styles.input, { backgroundColor: colors.surface }]}
+                            placeholder="Edit your comment"
+                            placeholderTextColor={colors.textSecondary}
+                          />
+                          <TouchableOpacity onPress={() => handleEditComment(comment.id)}>
+                            <ThemedText variant="body" color="accent" style={{ marginLeft: spacing.xs }}>
+                              Save
+                            </ThemedText>
+                          </TouchableOpacity>
+                        </View>
+                      ) : (
+                        <ThemedText variant="caption" color="textSecondary">
+                          {comment.text}
+                        </ThemedText>
+                      )}
+                    </View>
+                  );
+                })
+              )}
 
       <View style={styles.inputRow}>
         <TextInput
@@ -104,4 +160,9 @@ const styles = StyleSheet.create({
   sendButton: {
     marginLeft: spacing.sm,
   },
+  editRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: spacing.xs,
+    },
 });

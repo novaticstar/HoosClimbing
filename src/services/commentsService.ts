@@ -73,6 +73,38 @@ export class CommentService {
   }
 
   /**
+   * Update a comment's text
+   */
+  static async updateComment(commentId: string, newText: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('comments')
+      .update({ text: newText })
+      .eq('id', commentId);
+
+    if (error) {
+      console.error('Error updating comment:', error);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Delete a comment
+   */
+  static async deleteComment(commentId: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('comments')
+      .delete()
+      .eq('id', commentId);
+
+    if (error) {
+      console.error('Error deleting comment:', error);
+      return false;
+    }
+    return true;
+  }
+
+  /**
    * Get three most recent comments
   */
   static async getRecentComments(postId: string): Promise<Comment[]> {
