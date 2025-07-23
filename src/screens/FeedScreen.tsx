@@ -11,7 +11,7 @@ import { FeedCard } from '../components/FeedCard';
 
 export default function FeedScreen() {
   const { colors } = useTheme();
-  const { posts, loading, likePost } = useFeed();
+  const { posts, loading, handleLikeToggle } = useFeed();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -31,7 +31,7 @@ export default function FeedScreen() {
             </View>
           ) : (
             posts.map((post) => (
-              <FeedCard key={post.id} post={post} onLike={likePost} />
+              <FeedCard key={post.id} post={post} onLike={handleLikeToggle} />
             ))
           )}
         </Container>

@@ -70,4 +70,37 @@ export class FeedService {
       return false;
     }
   }
+
+  /**
+   * Get the most liked and most recent post
+   */
+  static async getTopPost(): Promise<FeedItem | null> {
+    try {
+      const { data, error } = await supabase
+        .from('feed')
+        .select(`
+          id,
+          user_id,
+          description,
+          likes,
+          created_at,
+          updated_at,
+          profiles ( username, avatar_url )
+        `)
+        .order('likes', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching top post:', error);
+        return null;
+      }
+
+      return data || null;
+    } catch (err) {
+      console.error('Exception in getTopPost:', err);
+      return null;
+    }
+  }
 }

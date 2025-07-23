@@ -11,9 +11,10 @@ import { CommentService, Comment } from '../services/commentsService';
 
 type Props = {
   postId: string;
+  collapsed?: boolean; // if true, only show 3 recent
 };
 
-export function CommentSection({ postId }: Props) {
+export function CommentSection({ postId, collapsed = false }: Props) {
   const { colors } = useTheme();
   const { user } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
@@ -21,8 +22,12 @@ export function CommentSection({ postId }: Props) {
   const [loading, setLoading] = useState(true);
 
   const fetchComments = async () => {
-    const data = await CommentService.getCommentsForPost(postId);
-    setComments(data);
+    setLoading(true);
+    const data = collapsed
+      ? await CommentService.getRecentComments(postId)
+      : await CommentService.getCommentsForPost(postId);
+
+    setComments(data.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
     setLoading(false);
   };
 
@@ -38,7 +43,7 @@ export function CommentSection({ postId }: Props) {
 
   useEffect(() => {
     fetchComments();
-  }, []);
+  }, [collapsed]);
 
   return (
     <View style={styles.container}>
