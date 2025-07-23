@@ -11,6 +11,7 @@ import TabBarBackground from '../components/ui/TabBarBackground';
 import FeedScreen from '../screens/FeedScreen';
 import FriendsScreen from '../screens/FriendsScreen';
 import HomeScreen from '../screens/HomeScreen';
+import EventsScreen from '../screens/EventsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import UploadScreen from '../screens/UploadScreen';
 import { uvaColors } from '../theme/colors';
@@ -21,6 +22,7 @@ export type AppTabsParamList = {
   Friends: undefined;
   Upload: undefined;
   Feed: undefined;
+  EventsTest: undefined;
   You: undefined;
 };
 
@@ -88,6 +90,16 @@ export default function AppTabs() {
           title: 'Feed',
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="heart.fill" color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="EventsTest"
+        component={EventsScreen}
+        options={{
+            title: 'EventsTest',
+          tabBarIcon: ({ color }) => (
+          <IconSymbol size={28} name="circle.fill" color={color} />
           ),
         }}
       />
