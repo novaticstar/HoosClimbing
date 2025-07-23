@@ -11,6 +11,7 @@ import TabBarBackground from '../components/ui/TabBarBackground';
 import FeedScreen from '../screens/FeedScreen';
 import FriendsScreen from '../screens/FriendsScreen';
 import HomeScreen from '../screens/HomeScreen';
+import EventsScreen from '../screens/EventsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import UploadScreen from '../screens/UploadScreen';
 import { uvaColors } from '../theme/colors';
@@ -21,6 +22,7 @@ export type AppTabsParamList = {
   Friends: undefined;
   Upload: undefined;
   Feed: undefined;
+  EventsTest: undefined;
   You: undefined;
 };
 
@@ -62,12 +64,12 @@ export default function AppTabs() {
         }}
       />
       <Tab.Screen
-        name="Friends"
-        component={FriendsScreen}
+        name="Feed"
+        component={FeedScreen}
         options={{
-          title: 'Friends',
+          title: 'Feed',
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="person.2.fill" color={color} />
+            <IconSymbol size={28} name="heart.fill" color={color} />
           ),
         }}
       />
@@ -81,13 +83,23 @@ export default function AppTabs() {
           ),
         }}
       />
-      <Tab.Screen
-        name="Feed"
-        component={FeedScreen}
+            <Tab.Screen
+        name="Friends"
+        component={FriendsScreen}
         options={{
-          title: 'Feed',
+          title: 'Friends',
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="heart.fill" color={color} />
+            <IconSymbol size={28} name="person.2.fill" color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="EventsTest"
+        component={EventsScreen}
+        options={{
+            title: 'EventsTest',
+          tabBarIcon: ({ color }) => (
+          <IconSymbol size={28} name="circle.fill" color={color} />
           ),
         }}
       />

@@ -184,36 +184,31 @@ export default function HomeScreen() {
 
           {/* Events Section */}
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <ThemedText variant="h3" color="text">
-                Events
-              </ThemedText>
-              <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
-                →
-              </ThemedText>
-            </View>
-            <Card style={styles.feedCard}>
-              <View style={[styles.feedImage, { backgroundColor: colors.surfaceVariant }]}>
-                <ThemedText variant="h1" color="textSecondary">
-                  🏔️
-                </ThemedText>
-              </View>
-              <View style={styles.feedContent}>
-                <View style={styles.feedInfo}>
-                  <ThemedText variant="h4" color="text">
-                    Event Name
-                  </ThemedText>
-                  <ThemedText variant="body" color="textSecondary">
-                    Event details
-                  </ThemedText>
-                </View>
-                <View style={[styles.playButton, { backgroundColor: colors.accent }]}>
-                  <ThemedText variant="body" color="onAccent">
-                    ▶
-                  </ThemedText>
-                </View>
-              </View>
-            </Card>
+            <TouchableOpacity
+                style={styles.sectionHeader}
+                onPress={() => navigation.navigate('Events')}
+                activeOpacity={0.7}
+              >
+                <ThemedText variant="h3" color="text">Events</ThemedText>
+                <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>→</ThemedText>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => navigation.navigate('Events')}>
+                <Card style={styles.feedCard}>
+                  <View style={[styles.feedImage, { backgroundColor: colors.surfaceVariant }]}>
+                    <ThemedText variant="h1" color="textSecondary">🏔️</ThemedText>
+                  </View>
+                  <View style={styles.feedContent}>
+                    <View style={styles.feedInfo}>
+                      <ThemedText variant="h4" color="text">Next Event Title</ThemedText>
+                      <ThemedText variant="body" color="textSecondary">Short description or date</ThemedText>
+                    </View>
+                    <View style={[styles.playButton, { backgroundColor: colors.accent }]}>
+                      <ThemedText variant="body" color="onAccent">▶</ThemedText>
+                    </View>
+                  </View>
+                </Card>
+              </TouchableOpacity>
           </View>
 
           {/* Your Posts Section */}
