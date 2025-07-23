@@ -4,18 +4,22 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Container, spacing, ThemedText, useTheme } from '../theme/ui';
 import { useAuth } from '../context/AuthContext';
 import { useFriends } from '../hooks/useFriends';
-import  { useState } from 'react';
+import  { useEffect, useState } from 'react';
 import { Modal, TextInput, Button, Text } from 'react-native'; // Add these
 import * as ImagePicker from 'expo-image-picker';
+import { supabase } from '../lib/supabase';
+
+
 export default function ProfileScreen() {
   const { colors } = useTheme();
   const {friends } = useFriends();
+  const { updateProfile } = useAuth();
 
   const mockPosts = Array(12).fill(require('../../assets/images/splash-icon.png')); // Mock post images
   const { user } = useAuth();
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [bio, setBio] = useState('');
+  const [bio, setBio] = useState('This is a short bio about the user. It can include hobbies, interests, or anything else."');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [profilePicture, setProfilePicture] = useState(user?.user_metadata?.avatar_url || '');
 
@@ -39,6 +43,52 @@ export default function ProfileScreen() {
       setImageUri(result.assets[0].uri);
     }
   }
+  
+async function updateBio(newBio: string) {
+const { error } = await updateProfile({ bio: newBio }); // newBio is the text from input
+
+  if (error) {
+    console.error('Failed to update bio:', error.message);
+    // Show error UI
+  } else {
+    console.log('Bio updated successfully!');
+    // Close modal or show success
+  }
+}
+
+async function fetchBio() {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    console.error('User not authenticated:', authError);
+    return "This is a short bio about the user. It can include hobbies, interests, or anything else.";
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('bio')
+    .eq('id', user.id)
+    .single(); // because you're fetching only one profile
+
+  if (error) {
+    //console.error('Error fetching bio:', error);
+    return "This is a short bio about the user. It can include hobbies, interests, or anything else.";
+  }
+
+  return data.bio;
+}
+
+
+  useEffect(() => {
+    async function loadBio() {
+      const fetchedBio = await fetchBio();
+      if (fetchedBio) {
+        setBio(fetchedBio);
+      }
+    }
+
+    loadBio();
+  }, []);
 
 
 
@@ -57,7 +107,7 @@ export default function ProfileScreen() {
                 {user?.user_metadata?.username || 'Username'}
               </ThemedText>
               <ThemedText variant="body" color="textSecondary">
-                This is a short bio about the user. It can include hobbies, interests, or anything else.
+                {bio}
               </ThemedText>
             </View>
           </View>
@@ -126,6 +176,8 @@ export default function ProfileScreen() {
         <Button title="Cancel" onPress={() => setModalVisible(false)} />
         <Button title="Save" onPress={() => {
           // Save logic here (save bio using the bio variable)
+          bio? updateBio(bio) : null;
+          // Save profile picture logic here
           setModalVisible(false);
         }} />
       </View>
