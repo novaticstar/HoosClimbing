@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
   dropdown: {
     position: 'absolute',
     top: 70,
-    right: 0,
+    right: -50,
     minWidth: 160,
     borderRadius: 8,
     borderWidth: 1,

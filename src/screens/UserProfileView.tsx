@@ -7,8 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
 import { User } from '../services/friendsService';
+import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
 
 interface UserProfileViewProps {
   user: User;
@@ -174,9 +174,6 @@ export default function UserProfileView({
                   {user.full_name}
                 </ThemedText>
               )}
-              <ThemedText variant="body" color="textSecondary">
-                {user.email}
-              </ThemedText>
             </View>
           </View>
 

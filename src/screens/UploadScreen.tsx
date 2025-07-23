@@ -110,6 +110,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.lg,
+    paddingTop: spacing.xxl,
   },
   header: {
     marginBottom: spacing.xxl,
