@@ -71,4 +71,35 @@ export class CommentService {
       return false;
     }
   }
+
+  /**
+   * Get three most recent comments
+  */
+  static async getRecentComments(postId: string): Promise<Comment[]> {
+    try {
+      const { data, error } = await supabase
+        .from('comments')
+        .select(`
+          id,
+          post_id,
+          user_id,
+          text,
+          created_at,
+          profiles ( username )
+        `)
+        .eq('post_id', postId)
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (error) {
+        console.error('Error fetching recent comments:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (err) {
+      console.error('Exception fetching recent comments:', err);
+      return [];
+    }
+  }
 }
