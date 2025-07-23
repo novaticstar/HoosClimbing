@@ -14,7 +14,7 @@ type Props = {
   collapsed?: boolean; // if true, only show 3 recent
 };
 
-export function CommentSection({ postId }: Props) {
+export function CommentSection({ postId, collapsed = false }: Props) {
   const { colors } = useTheme();
   const { user } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
@@ -22,6 +22,7 @@ export function CommentSection({ postId }: Props) {
   const [loading, setLoading] = useState(true);
 
   const fetchComments = async () => {
+    setLoading(true);
     const data = collapsed
       ? await CommentService.getRecentComments(postId)
       : await CommentService.getCommentsForPost(postId);
@@ -42,7 +43,7 @@ export function CommentSection({ postId }: Props) {
 
   useEffect(() => {
     fetchComments();
-  }, []);
+  }, [collapsed]);
 
   return (
     <View style={styles.container}>
