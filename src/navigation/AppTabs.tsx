@@ -64,12 +64,12 @@ export default function AppTabs() {
         }}
       />
       <Tab.Screen
-        name="Friends"
-        component={FriendsScreen}
+        name="Feed"
+        component={FeedScreen}
         options={{
-          title: 'Friends',
+          title: 'Feed',
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="person.2.fill" color={color} />
+            <IconSymbol size={28} name="heart.fill" color={color} />
           ),
         }}
       />
@@ -83,13 +83,13 @@ export default function AppTabs() {
           ),
         }}
       />
-      <Tab.Screen
-        name="Feed"
-        component={FeedScreen}
+            <Tab.Screen
+        name="Friends"
+        component={FriendsScreen}
         options={{
-          title: 'Feed',
+          title: 'Friends',
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="heart.fill" color={color} />
+            <IconSymbol size={28} name="person.2.fill" color={color} />
           ),
         }}
       />
