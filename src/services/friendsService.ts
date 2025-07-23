@@ -11,6 +11,7 @@ export interface User {
   username?: string;
   full_name?: string;
   avatar_url?: string;
+  bio?: string;
   created_at: string;
 }
 
@@ -239,6 +240,7 @@ export class FriendsService {
             username,
             full_name,
             avatar_url,
+            bio,
             created_at
           )
         `)
@@ -289,7 +291,7 @@ export class FriendsService {
       // Get all users except current user and connected users
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, email, username, full_name, avatar_url, created_at')
+        .select('id, email, username, full_name, avatar_url, bio, created_at')
         .neq('id', userId)
         .limit(limit * 2); // Get more to filter out connected users
 
@@ -469,6 +471,7 @@ export class FriendsService {
             username,
             full_name,
             avatar_url,
+            bio,
             created_at
           )
         `)
@@ -499,6 +502,7 @@ export class FriendsService {
             username,
             full_name,
             avatar_url,
+            bio,
             created_at
           )
         `)

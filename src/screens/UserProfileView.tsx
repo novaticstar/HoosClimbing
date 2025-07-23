@@ -69,6 +69,25 @@ export default function UserProfileView({
     }
   };
 
+  const handleRemoveFriend = async () => {
+    if (onRemoveFriend) {
+      const success = await onRemoveFriend(user.id);
+      if (success) {
+        // The parent component should handle UI updates
+      }
+    }
+  };
+
+  const handleDeclineRequest = async () => {
+    // Declining a friend request is the same as removing the friendship
+    if (onRemoveFriend) {
+      const success = await onRemoveFriend(user.id);
+      if (success) {
+        // The parent component should handle UI updates
+      }
+    }
+  };
+
   const renderActionButtons = () => {
     switch (friendshipStatus) {
       case 'friend':
@@ -85,6 +104,7 @@ export default function UserProfileView({
             
             <TouchableOpacity 
               style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
+              onPress={handleRemoveFriend}
             >
               <Ionicons name="person-remove" size={20} color={colors.error} />
               <ThemedText variant="body" color="error" style={styles.buttonText}>
@@ -108,6 +128,7 @@ export default function UserProfileView({
             
             <TouchableOpacity 
               style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
+              onPress={handleDeclineRequest}
             >
               <Ionicons name="close" size={20} color={colors.text} />
               <ThemedText variant="body" color="text" style={styles.buttonText}>
@@ -203,7 +224,7 @@ export default function UserProfileView({
               About
             </ThemedText>
             <ThemedText variant="body" color="textSecondary">
-              This climber hasn't added a bio yet.
+              {user.bio || "This climber hasn't added a bio yet."}
             </ThemedText>
           </Card>
 

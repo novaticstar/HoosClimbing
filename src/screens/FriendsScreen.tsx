@@ -237,6 +237,14 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
                 Cancel
               </ThemedText>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
+              onPress={handleViewProfile}
+            >
+              <ThemedText variant="caption" color="text" style={styles.buttonText}>
+                Profile
+              </ThemedText>
+            </TouchableOpacity>
           </View>
         );
       case 'suggestion':
@@ -392,7 +400,7 @@ export default function FriendsScreen() {
     if (sentRequests.some(r => r.id === userId)) return 'sent';
     return 'none';
   };
-
+// TODO: FIX AND IMPLEMENT API, WE DO HAVE ACCESS TO THE USER'S FRIEND LIST
   const getUserFriendCount = (userId: string): number => {
     // For now, we don't have access to the user's friend list
     // In a real app, this would be fetched from the API
@@ -405,8 +413,7 @@ export default function FriendsScreen() {
     const query = searchQuery.toLowerCase();
     return users.filter(user =>
       user.username?.toLowerCase().includes(query) ||
-      user.full_name?.toLowerCase().includes(query) ||
-      user.email?.toLowerCase().includes(query)
+      user.full_name?.toLowerCase().includes(query)
     );
   };
 
