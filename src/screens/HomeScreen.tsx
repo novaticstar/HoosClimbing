@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { FriendCard } from '../components/FriendCard';
 import { useAuth } from '../context/AuthContext';
 import { useFriends } from '../hooks/useFriends';
+import { useTopPost } from '../hooks/useTopPost';
 import type { AppTabsParamList } from '../navigation/AppTabs';
 import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
 export default function HomeScreen() {
@@ -36,6 +37,8 @@ export default function HomeScreen() {
 
   const hasPendingRequests = pendingRequests.length > 0;
   const hasSentRequests = sentRequests.length > 0;
+
+  const { post: topPost, loading: topPostLoading } = useTopPost();
 
 
   return (
@@ -139,35 +142,44 @@ export default function HomeScreen() {
           {/* Feed Section */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <ThemedText variant="h3" color="text">
-                Feed
-              </ThemedText>
-              <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
-                →
-              </ThemedText>
-            </View>
-            <Card style={styles.feedCard}>
-              <View style={[styles.feedImage, { backgroundColor: colors.surfaceVariant }]}>
-                <ThemedText variant="h1" color="textSecondary">
-                  🏔️
+              <ThemedText variant="h3" color="text">Feed</ThemedText>
+              <TouchableOpacity onPress={() => navigation.navigate('Feed')}>
+                <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
+                  →
                 </ThemedText>
-              </View>
-              <View style={styles.feedContent}>
-                <View style={styles.feedInfo}>
-                  <ThemedText variant="h4" color="text">
-                    Poster
-                  </ThemedText>
-                  <ThemedText variant="body" color="textSecondary">
-                    Post Title
-                  </ThemedText>
+              </TouchableOpacity>
+            </View>
+
+            {topPostLoading ? (
+              <ThemedText variant="body" color="textSecondary">
+                Loading top post...
+              </ThemedText>
+            ) : topPost ? (
+              <Card style={styles.feedCard}>
+                <View style={styles.feedImage}>
+                  <ThemedText variant="h1" color="textSecondary">🧗‍♂️</ThemedText>
                 </View>
-                <View style={[styles.playButton, { backgroundColor: colors.accent }]}>
-                  <ThemedText variant="body" color="onAccent">
-                    ▶
-                  </ThemedText>
+                <View style={styles.feedContent}>
+                  <View style={styles.feedInfo}>
+                    <ThemedText variant="h4" color="text">
+                      {topPost.profiles?.username || 'Anonymous'}
+                    </ThemedText>
+                    {topPost.description && (
+                      <ThemedText variant="body" color="textSecondary">
+                        {topPost.description}
+                      </ThemedText>
+                    )}
+                  </View>
+                  <View style={[styles.playButton, { backgroundColor: colors.accent }]}>
+                    <ThemedText variant="body" color="onAccent">▶</ThemedText>
+                  </View>
                 </View>
-              </View>
-            </Card>
+              </Card>
+            ) : (
+              <ThemedText variant="body" color="textSecondary">
+                No posts yet. Be the first to post!
+              </ThemedText>
+            )}
           </View>
 
           {/* Events Section */}
