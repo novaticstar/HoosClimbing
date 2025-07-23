@@ -104,10 +104,7 @@ export default function HomeScreen() {
               activeOpacity={0.7}
             >
               <ThemedText variant="h3" color="text">
-                Friends
-              </ThemedText>
-              <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
-                →
+                Friends →
               </ThemedText>
             </TouchableOpacity>
             {/* Current Friends */}
@@ -141,11 +138,12 @@ export default function HomeScreen() {
           {/* Feed Section */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <ThemedText variant="h3" color="text">Feed</ThemedText>
-              <TouchableOpacity onPress={() => navigation.navigate('Feed')}>
-                <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
-                  →
-                </ThemedText>
+              <TouchableOpacity 
+              style={styles.sectionHeader}
+              onPress={() => navigation.navigate('Feed')}
+              activeOpacity={0.7}
+            >
+                <ThemedText variant="h3" color="text">Feed →</ThemedText>
               </TouchableOpacity>
             </View>
 
@@ -183,13 +181,12 @@ export default function HomeScreen() {
 
           {/* Events Section */}
           <View style={styles.section}>
-            <TouchableOpacity
-                style={styles.sectionHeader}
-                onPress={() => navigation.navigate('EventsTest')}
-                activeOpacity={0.7}
-              >
-                <ThemedText variant="h3" color="text">Events</ThemedText>
-                <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>→</ThemedText>
+              <TouchableOpacity 
+              style={styles.sectionHeader}
+              onPress={() => navigation.navigate('EventsTest')}
+              activeOpacity={0.7}
+            >
+                <ThemedText variant="h3" color="text">Events →</ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => navigation.navigate('EventsTest')}>
