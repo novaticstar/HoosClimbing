@@ -186,14 +186,14 @@ export default function HomeScreen() {
           <View style={styles.section}>
             <TouchableOpacity
                 style={styles.sectionHeader}
-                onPress={() => navigation.navigate('Events')}
+                onPress={() => navigation.navigate('EventsTest')}
                 activeOpacity={0.7}
               >
                 <ThemedText variant="h3" color="text">Events</ThemedText>
                 <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>→</ThemedText>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => navigation.navigate('Events')}>
+              <TouchableOpacity onPress={() => navigation.navigate('EventsTest')}>
                 <Card style={styles.feedCard}>
                   <View style={[styles.feedImage, { backgroundColor: colors.surfaceVariant }]}>
                     <ThemedText variant="h1" color="textSecondary">🏔️</ThemedText>
