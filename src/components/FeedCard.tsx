@@ -54,7 +54,7 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
         >
           <Ionicons name="chatbubble-outline" size={20} color={colors.textSecondary} />
           <ThemedText variant="body" color="textSecondary">
-            {showAllComments ? 'Hide' : 'Comment'}
+            {showAllComments ? 'Hide' : 'View Comments'}
           </ThemedText>
         </TouchableOpacity>
       </View>
