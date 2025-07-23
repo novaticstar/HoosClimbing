@@ -2,94 +2,70 @@
  * Events Overview Screen
  */
 
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme, spacing, Container, ThemedText, Card } from '../theme/ui';
-
-type Event = {
-  id: string;
-  title: string;
-  details: string;
-  start_time: string; // ISO date string
-};
+import { spacing, Container, ThemedText, Card, useTheme } from '../theme/ui';
 
 export default function EventsScreen() {
   const { colors } = useTheme();
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // TEMP: Mock data. Replace with call to EventsService later
-    const mockEvents: Event[] = [
-      {
-        id: '1',
-        title: 'Outdoor Bouldering at Humpback',
-        details: 'Join us at Humpback Rocks for an afternoon of climbing!',
-        start_time: new Date().toISOString(),
-      },
-      {
-        id: '2',
-        title: 'Intro to Belaying Workshop',
-        details: 'Learn to belay safely with certified instructors.',
-        start_time: new Date(Date.now() + 86400000).toISOString(),
-      },
-    ];
+  // Mock data
+  const popularEvent = {
+    id: '1',
+    title: 'Horseshoe Hell',
+    description: 'Multi-day festival full of bouldering challengers and climbing competitions',
+    date: 'September 24-28',
+  };
 
-    setTimeout(() => {
-      setEvents(mockEvents);
-      setLoading(false);
-    }, 800);
-  }, []);
+  const upcomingEvents = [
+    { id: '2', title: 'Club Meeting', description: 'Weekly planning session', date: 'July 27' },
+    { id: '3', title: 'Speed Climbing Competition', description: 'Who can climb the fastest?', date: 'July 30' },
+    { id: '4', title: 'Intro to Knot Tying', description: 'Workshop with various climbing knots', date: 'August 3' },
+  ];
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Container>
-        <ThemedText variant="h2" color="text" style={styles.title}>
-          Upcoming Events
-        </ThemedText>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <Container style={styles.content}>
+          <ThemedText variant="h2" color="text" style={styles.title}>Events</ThemedText>
 
-        {loading ? (
-          <ActivityIndicator size="large" color={colors.accent} />
-        ) : (
-          <FlatList
-            data={events}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <Card style={styles.card}>
-                <TouchableOpacity>
-                  <ThemedText variant="h4" color="text">
-                    {item.title}
-                  </ThemedText>
-                  <ThemedText variant="body" color="textSecondary" style={styles.details}>
-                    {item.details}
-                  </ThemedText>
-                  <ThemedText variant="caption" color="textSecondary">
-                    {new Date(item.start_time).toLocaleString()}
-                  </ThemedText>
-                </TouchableOpacity>
-              </Card>
-            )}
-          />
-        )}
-      </Container>
+          {/* Popular Event */}
+          <ThemedText variant="h3" color="text" style={styles.sectionTitle}>Popular Event</ThemedText>
+          <Card style={styles.popularCard}>
+            <ThemedText variant="h4" color="text">{popularEvent.title}</ThemedText>
+            <ThemedText variant="body" color="textSecondary">{popularEvent.description}</ThemedText>
+            <ThemedText variant="caption" color="accent">{popularEvent.date}</ThemedText>
+          </Card>
+
+          {/* Upcoming Events */}
+          <ThemedText variant="h3" color="text" style={styles.sectionTitle}>Upcoming Events</ThemedText>
+          {upcomingEvents.map((event) => (
+            <Card key={event.id} style={styles.eventCard}>
+              <ThemedText variant="h4" color="text">{event.title}</ThemedText>
+              <ThemedText variant="body" color="textSecondary">{event.description}</ThemedText>
+              <ThemedText variant="caption" color="accent">{event.date}</ThemedText>
+            </Card>
+          ))}
+        </Container>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { flex: 1 },
+  content: { padding: spacing.lg },
+  title: { marginBottom: spacing.lg },
+  sectionTitle: { marginTop: spacing.lg, marginBottom: spacing.md },
+  popularCard: {
+    marginBottom: spacing.xl,
+    padding: spacing.md,
+    borderRadius: 12,
   },
-  title: {
-    marginBottom: spacing.lg,
-  },
-  card: {
+  eventCard: {
     marginBottom: spacing.lg,
     padding: spacing.md,
-  },
-  details: {
-    marginTop: spacing.sm,
-    marginBottom: spacing.xs,
+    borderRadius: 12,
   },
 });
