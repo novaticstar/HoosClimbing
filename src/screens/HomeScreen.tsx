@@ -206,36 +206,6 @@ export default function HomeScreen() {
                 </Card>
               </TouchableOpacity>
           </View>
-
-          {/* Your Posts Section */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-            <TouchableOpacity onPress={() => navigation.navigate('You')}>
-              <ThemedText variant="h3" color="text">
-                Your Posts 
-              </ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigation.navigate('You')}>
-                <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
-                →
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.postsGrid}>
-              {[1, 2, 3, 4].map((post) => (
-                <View key={post} style={styles.postItem}>
-                  <View style={[styles.postImage, { backgroundColor: colors.surfaceVariant }]}>
-                    <ThemedText variant="h4" color="textSecondary">
-                      🏔️
-                    </ThemedText>
-                  </View>
-                  <ThemedText variant="caption" color="text" style={styles.postLabel}>
-                    Label
-                  </ThemedText>
-                </View>
-              ))}
-            </View>
-          </View>
         </Container>
       </ScrollView>
     </SafeAreaView>
