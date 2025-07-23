@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { Card, spacing, ThemedText, useTheme } from '../theme/ui';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ type FeedCardProps = {
 
 export const FeedCard = ({ post, onLike }: FeedCardProps) => {
   const { colors } = useTheme();
+  const [showAllComments, setShowAllComments] = useState(false);
 
   return (
     <Card style={styles.postCard}>
@@ -22,7 +23,6 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
         <ThemedText variant="caption" color="textSecondary">
           {new Date(post.created_at).toLocaleString()}
         </ThemedText>
-
       </View>
 
       {/* Content */}
@@ -36,24 +36,30 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
       <View style={styles.postActions}>
         <TouchableOpacity
           onPress={() => onLike(post.id, post.likes)}
-            style={styles.actionButton}
-          >
-            <Ionicons
-              name={post.hasLiked ? 'heart' : 'heart-outline'}
-              size={20}
-              color={post.hasLiked ? colors.accent : colors.textSecondary}
-            />
-            <ThemedText variant="body" color="accent" style={styles.likeText}>
-              {post.likes}
-            </ThemedText>
+          style={styles.actionButton}
+        >
+          <Ionicons
+            name={post.hasLiked ? 'heart' : 'heart-outline'}
+            size={20}
+            color={post.hasLiked ? colors.accent : colors.textSecondary}
+          />
+          <ThemedText variant="body" color="accent" style={styles.likeText}>
+            {post.likes}
+          </ThemedText>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionButton}>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => setShowAllComments(!showAllComments)}
+        >
           <Ionicons name="chatbubble-outline" size={20} color={colors.textSecondary} />
-          <ThemedText variant="body" color="textSecondary">Comment</ThemedText>
+          <ThemedText variant="body" color="textSecondary">
+            {showAllComments ? 'Hide' : 'Comment'}
+          </ThemedText>
         </TouchableOpacity>
       </View>
-      <CommentSection postId={post.id} />
+
+      <CommentSection postId={post.id} collapsed={!showAllComments} />
     </Card>
   );
 };
