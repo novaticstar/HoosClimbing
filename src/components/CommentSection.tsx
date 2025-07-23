@@ -12,12 +12,13 @@ import { Ionicons } from '@expo/vector-icons';
 
 type Props = {
   postId: string;
-  collapsed?: boolean; // if true, only show 3 recent
+  collapsed?: boolean;
 };
 
 export function CommentSection({ postId, collapsed = false }: Props) {
   const { colors } = useTheme();
   const { user } = useAuth();
+
   const [comments, setComments] = useState<Comment[]>([]);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
@@ -30,14 +31,15 @@ export function CommentSection({ postId, collapsed = false }: Props) {
       ? await CommentService.getRecentComments(postId)
       : await CommentService.getCommentsForPost(postId);
 
-    setComments(data.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
+    setComments(
+      data.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    );
     setLoading(false);
   };
 
   const handleAddComment = async () => {
     if (!text.trim()) return;
-
-    const success = await CommentService.addComment(postId, user.id, text);
+    const success = await CommentService.addComment(postId, user.id, text.trim());
     if (success) {
       setText('');
       fetchComments();
@@ -45,18 +47,18 @@ export function CommentSection({ postId, collapsed = false }: Props) {
   };
 
   const handleEditComment = async (commentId: string) => {
-      if (!editText.trim()) return;
-      const success = await CommentService.updateComment(commentId, editText.trim());
-      if (success) {
-        setEditingCommentId(null);
-        setEditText('');
-        fetchComments();
-      }
-    };
+    if (!editText.trim()) return;
+    const success = await CommentService.updateComment(commentId, editText.trim());
+    if (success) {
+      setEditingCommentId(null);
+      setEditText('');
+      fetchComments();
+    }
+  };
 
   const handleDeleteComment = async (commentId: string) => {
-      const success = await CommentService.deleteComment(commentId);
-      if (success) fetchComments();
+    const success = await CommentService.deleteComment(commentId);
+    if (success) fetchComments();
   };
 
   useEffect(() => {
@@ -75,54 +77,65 @@ export function CommentSection({ postId, collapsed = false }: Props) {
         </ThemedText>
       ) : (
         comments.map((comment) => {
-                  const isOwn = comment.user_id === user.id;
-                  const isEditing = editingCommentId === comment.id;
+          const isOwn = comment.user_id === user.id;
+          const isEditing = editingCommentId === comment.id;
 
-                  return (
-                    <View key={comment.id} style={styles.commentItem}>
-                      <View style={styles.commentHeader}>
-                        <ThemedText variant="caption" color="text">
-                          {comment.profiles?.username || 'User'}:
-                        </ThemedText>
-                        {isOwn && !isEditing && (
-                          <View style={styles.actions}>
-                            <TouchableOpacity onPress={() => {
-                              setEditingCommentId(comment.id);
-                              setEditText(comment.text);
-                            }}>
-                              <Ionicons name="pencil" size={16} color={colors.textSecondary} />
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => handleDeleteComment(comment.id)}>
-                              <Ionicons name="trash" size={16} color={colors.error || 'red'} />
-                            </TouchableOpacity>
-                          </View>
-                        )}
-                      </View>
+          return (
+            <View key={comment.id} style={styles.commentItem}>
+              <ThemedText variant="caption" color="text">
+                {comment.profiles?.username || 'User'}:
+              </ThemedText>
 
-                      {isEditing ? (
-                        <View style={styles.editRow}>
-                          <TextInput
-                            value={editText}
-                            onChangeText={setEditText}
-                            style={[styles.input, { backgroundColor: colors.surface }]}
-                            placeholder="Edit your comment"
-                            placeholderTextColor={colors.textSecondary}
-                          />
-                          <TouchableOpacity onPress={() => handleEditComment(comment.id)}>
-                            <ThemedText variant="body" color="accent" style={{ marginLeft: spacing.xs }}>
-                              Save
-                            </ThemedText>
-                          </TouchableOpacity>
-                        </View>
-                      ) : (
-                        <ThemedText variant="caption" color="textSecondary">
-                          {comment.text}
-                        </ThemedText>
-                      )}
-                    </View>
-                  );
-                })
+              {isEditing ? (
+                <View style={styles.editRow}>
+                  <TextInput
+                    value={editText}
+                    onChangeText={setEditText}
+                    style={[styles.input, { backgroundColor: colors.surface }]}
+                    placeholder="Edit your comment"
+                    placeholderTextColor={colors.textSecondary}
+                  />
+                  <TouchableOpacity onPress={() => handleEditComment(comment.id)}>
+                    <ThemedText variant="body" color="accent" style={{ marginLeft: spacing.xs }}>
+                      Save
+                    </ThemedText>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <ThemedText variant="caption" color="textSecondary">
+                  {comment.text}
+                </ThemedText>
               )}
+
+              {isOwn && !isEditing && (
+                <View style={styles.actionRow}>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => {
+                      setEditingCommentId(comment.id);
+                      setEditText(comment.text);
+                    }}
+                  >
+                    <Ionicons name="pencil-outline" size={16} color={colors.textSecondary} />
+                    <ThemedText variant="caption" color="textSecondary" style={styles.iconLabel}>
+                      Edit
+                    </ThemedText>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => handleDeleteComment(comment.id)}
+                  >
+                    <Ionicons name="trash-outline" size={16} color={colors.error || 'red'} />
+                    <ThemedText variant="caption" color="textSecondary" style={styles.iconLabel}>
+                      Delete
+                    </ThemedText>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          );
+        })
+      )}
 
       <View style={styles.inputRow}>
         <TextInput
@@ -145,7 +158,24 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   commentItem: {
-    marginBottom: spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  editRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.xs,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.xxs,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconLabel: {
+    marginLeft: spacing.xs,
   },
   inputRow: {
     flexDirection: 'row',
@@ -160,9 +190,4 @@ const styles = StyleSheet.create({
   sendButton: {
     marginLeft: spacing.sm,
   },
-  editRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: spacing.xs,
-    },
 });
