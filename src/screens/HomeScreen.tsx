@@ -104,10 +104,7 @@ export default function HomeScreen() {
               activeOpacity={0.7}
             >
               <ThemedText variant="h3" color="text">
-                Friends
-              </ThemedText>
-              <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
-                →
+                Friends →
               </ThemedText>
             </TouchableOpacity>
             {/* Current Friends */}
@@ -141,11 +138,12 @@ export default function HomeScreen() {
           {/* Feed Section */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <ThemedText variant="h3" color="text">Feed</ThemedText>
-              <TouchableOpacity onPress={() => navigation.navigate('Feed')}>
-                <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
-                  →
-                </ThemedText>
+              <TouchableOpacity 
+              style={styles.sectionHeader}
+              onPress={() => navigation.navigate('Feed')}
+              activeOpacity={0.7}
+            >
+                <ThemedText variant="h3" color="text">Feed →</ThemedText>
               </TouchableOpacity>
             </View>
 
@@ -183,13 +181,12 @@ export default function HomeScreen() {
 
           {/* Events Section */}
           <View style={styles.section}>
-            <TouchableOpacity
-                style={styles.sectionHeader}
-                onPress={() => navigation.navigate('EventsTest')}
-                activeOpacity={0.7}
-              >
-                <ThemedText variant="h3" color="text">Events</ThemedText>
-                <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>→</ThemedText>
+              <TouchableOpacity 
+              style={styles.sectionHeader}
+              onPress={() => navigation.navigate('EventsTest')}
+              activeOpacity={0.7}
+            >
+                <ThemedText variant="h3" color="text">Events →</ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => navigation.navigate('EventsTest')}>
@@ -208,36 +205,6 @@ export default function HomeScreen() {
                   </View>
                 </Card>
               </TouchableOpacity>
-          </View>
-
-          {/* Your Posts Section */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-            <TouchableOpacity onPress={() => navigation.navigate('You')}>
-              <ThemedText variant="h3" color="text">
-                Your Posts 
-              </ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigation.navigate('You')}>
-                <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
-                →
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.postsGrid}>
-              {[1, 2, 3, 4].map((post) => (
-                <View key={post} style={styles.postItem}>
-                  <View style={[styles.postImage, { backgroundColor: colors.surfaceVariant }]}>
-                    <ThemedText variant="h4" color="textSecondary">
-                      🏔️
-                    </ThemedText>
-                  </View>
-                  <ThemedText variant="caption" color="text" style={styles.postLabel}>
-                    Label
-                  </ThemedText>
-                </View>
-              ))}
-            </View>
           </View>
         </Container>
       </ScrollView>
