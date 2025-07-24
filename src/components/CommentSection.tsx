@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
 import { View, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { useTheme, spacing, ThemedText } from '../theme/ui';
 import { useAuth } from '../context/AuthContext';
@@ -82,8 +83,9 @@ export function CommentSection({ postId, collapsed = false }: Props) {
 
           return (
             <View key={comment.id} style={styles.commentItem}>
-              <ThemedText variant="caption" color="text">
-                {comment.profiles?.username || 'User'}:
+              <ThemedText style={{ fontSize: 10 }} color="text">
+                {comment.profiles?.username || 'User'} ·{' '}
+                {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
               </ThemedText>
 
               {isEditing ? (
@@ -116,7 +118,7 @@ export function CommentSection({ postId, collapsed = false }: Props) {
                       setEditText(comment.text);
                     }}
                   >
-                    <Ionicons name="pencil-outline" size={16} color={colors.textSecondary} />
+                    <Ionicons name="pencil-outline" size={12} color={colors.textSecondary} />
                     <ThemedText variant="caption" color="textSecondary" style={styles.iconLabel}>
                       Edit
                     </ThemedText>
@@ -125,7 +127,7 @@ export function CommentSection({ postId, collapsed = false }: Props) {
                     style={styles.actionButton}
                     onPress={() => handleDeleteComment(comment.id)}
                   >
-                    <Ionicons name="trash-outline" size={16} color={colors.error || 'red'} />
+                    <Ionicons name="trash-outline" size={12} color={colors.error || colors.textSecondary} />
                     <ThemedText variant="caption" color="textSecondary" style={styles.iconLabel}>
                       Delete
                     </ThemedText>
