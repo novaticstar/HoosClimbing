@@ -154,26 +154,28 @@ export default function HomeScreen() {
                 Loading top post...
               </ThemedText>
             ) : topPost ? (
-              <Card style={styles.feedCard}>
-                <View style={styles.feedImage}>
-                  <ThemedText variant="h1" color="textSecondary">🧗‍♂️</ThemedText>
-                </View>
-                <View style={styles.feedContent}>
-                  <View style={styles.feedInfo}>
-                    <ThemedText variant="h4" color="text">
-                      {topPost.profiles?.username || 'Anonymous'}
-                    </ThemedText>
-                    {topPost.description && (
-                      <ThemedText variant="body" color="textSecondary">
-                        {topPost.description}
+              <TouchableOpacity onPress={() => navigation.navigate('Feed')}>
+                <Card style={styles.feedCard}>
+                  <View style={styles.feedImage}>
+                    <ThemedText variant="h1" color="textSecondary">🧗‍♂️</ThemedText>
+                  </View>
+                  <View style={styles.feedContent}>
+                    <View style={styles.feedInfo}>
+                      <ThemedText variant="h4" color="text">
+                        {topPost.profiles?.username || 'Anonymous'}
                       </ThemedText>
-                    )}
+                      {topPost.description && (
+                        <ThemedText variant="body" color="textSecondary">
+                          {topPost.description}
+                        </ThemedText>
+                      )}
+                    </View>
+                    <View style={[styles.playButton, { backgroundColor: colors.accent }]}>
+                      <ThemedText variant="body" color="onAccent">▶</ThemedText>
+                    </View>
                   </View>
-                  <View style={[styles.playButton, { backgroundColor: colors.accent }]}>
-                    <ThemedText variant="body" color="onAccent">▶</ThemedText>
-                  </View>
-                </View>
-              </Card>
+                </Card>
+              </TouchableOpacity>
             ) : (
               <ThemedText variant="body" color="textSecondary">
                 No posts yet. Be the first to post!
