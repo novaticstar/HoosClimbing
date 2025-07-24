@@ -11,7 +11,7 @@ The HoosClimbing app now includes a comprehensive friend system that allows user
 
 ## Components
 
-### 1. Database Schema (`database/002_create_friends_tables.sql`)
+### 1. Database Schema (`database/003_create_friends_tables.sql`)
 
 - **profiles**: Extends Supabase auth.users with additional user information
 - **friendships**: Manages friend relationships with status tracking
