@@ -11,7 +11,9 @@ import { Menu } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FriendCard } from '../components/FriendCard';
 import { useAuth } from '../context/AuthContext';
-import { useFriends } from '../hooks/useFriends';
+import { useAppStateSync } from '../hooks/useAppStateSync';
+import { useRealtimeFriends as useFriends } from '../hooks/useRealtimeFriends';
+import { useRealtimeNotifications } from '../hooks/useRealtimeNotifications';
 import { useTopPost } from '../hooks/useTopPost';
 import type { AppTabsParamList } from '../navigation/AppTabs';
 import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
@@ -29,13 +31,20 @@ export default function HomeScreen() {
     cancelFriendRequest,
     refresh
   } = useFriends();
+  const { unreadCount } = useRealtimeNotifications();
   const navigation = useNavigation<BottomTabNavigationProp<AppTabsParamList>>();
   const [menuVisible, setMenuVisible] = useState(false);
+
+  // Sync data when app comes to foreground
+  useAppStateSync(() => {
+    refresh();
+  });
 
   const openMenu = () => setMenuVisible(true);
   const closeMenu = () => setMenuVisible(false);
 
   const hasPendingRequests = pendingRequests.length > 0;
+  const totalNotifications = unreadCount > 0 ? unreadCount : pendingRequests.length;
 
   const { post: topPost, loading: topPostLoading } = useTopPost();
 
@@ -63,10 +72,10 @@ export default function HomeScreen() {
               <View style={styles.headerButtons}>
                 <TouchableOpacity style={styles.headerButton}>
                   <Ionicons name="notifications-outline" size={24} color={colors.textSecondary} />
-                  {hasPendingRequests && (
+                  {totalNotifications > 0 && (
                     <View style={[styles.notificationBadge, { backgroundColor: colors.accent }]}>
                       <ThemedText variant="caption" color="onAccent" style={styles.badgeText}>
-                        {pendingRequests.length}
+                        {totalNotifications}
                       </ThemedText>
                     </View>
                   )}

@@ -17,7 +17,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
-import { useFriends } from '../hooks/useFriends';
+import { useAppStateSync } from '../hooks/useAppStateSync';
+import { useRealtimeFriends as useFriends } from '../hooks/useRealtimeFriends';
+import { useRealtimeNotifications } from '../hooks/useRealtimeNotifications';
 import { User } from '../services/friendsService';
 import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
 import UserProfileView from './UserProfileView';
@@ -379,10 +381,17 @@ export default function FriendsScreen() {
     refresh,
   } = useFriends();
 
+  const { notifications, unreadCount } = useRealtimeNotifications();
+
   const [activeTab, setActiveTab] = useState<TabType>('friends');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [profileModalVisible, setProfileModalVisible] = useState(false);
+
+  // Sync data when app comes to foreground
+  useAppStateSync(() => {
+    refresh();
+  });
 
   const handleViewProfile = (user: User) => {
     setSelectedUser(user);
