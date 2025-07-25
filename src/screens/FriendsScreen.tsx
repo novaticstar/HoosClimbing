@@ -17,7 +17,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
-import { useFriends } from '../hooks/useFriends';
+import { useAppStateSync } from '../hooks/useAppStateSync';
+import { useRealtimeFriends as useFriends } from '../hooks/useRealtimeFriends';
+import { useRealtimeNotifications } from '../hooks/useRealtimeNotifications';
 import { User } from '../services/friendsService';
 import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
 import UserProfileView from './UserProfileView';
@@ -237,6 +239,14 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
                 Cancel
               </ThemedText>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
+              onPress={handleViewProfile}
+            >
+              <ThemedText variant="caption" color="text" style={styles.buttonText}>
+                Profile
+              </ThemedText>
+            </TouchableOpacity>
           </View>
         );
       case 'suggestion':
@@ -371,10 +381,17 @@ export default function FriendsScreen() {
     refresh,
   } = useFriends();
 
+  const { notifications, unreadCount } = useRealtimeNotifications();
+
   const [activeTab, setActiveTab] = useState<TabType>('friends');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [profileModalVisible, setProfileModalVisible] = useState(false);
+
+  // Sync data when app comes to foreground
+  useAppStateSync(() => {
+    refresh();
+  });
 
   const handleViewProfile = (user: User) => {
     setSelectedUser(user);
@@ -387,12 +404,12 @@ export default function FriendsScreen() {
   };
 
   const getUserFriendshipStatus = (userId: string): 'friend' | 'pending' | 'sent' | 'none' => {
-    if (friends.some(f => f.id === userId)) return 'friend';
-    if (pendingRequests.some(r => r.id === userId)) return 'pending';
-    if (sentRequests.some(r => r.id === userId)) return 'sent';
+    if (friends.some((f: User) => f.id === userId)) return 'friend';
+    if (pendingRequests.some((r: User) => r.id === userId)) return 'pending';
+    if (sentRequests.some((r: User) => r.id === userId)) return 'sent';
     return 'none';
   };
-
+// TODO: FIX AND IMPLEMENT API, WE DO HAVE ACCESS TO THE USER'S FRIEND LIST
   const getUserFriendCount = (userId: string): number => {
     // For now, we don't have access to the user's friend list
     // In a real app, this would be fetched from the API
@@ -405,8 +422,7 @@ export default function FriendsScreen() {
     const query = searchQuery.toLowerCase();
     return users.filter(user =>
       user.username?.toLowerCase().includes(query) ||
-      user.full_name?.toLowerCase().includes(query) ||
-      user.email?.toLowerCase().includes(query)
+      user.full_name?.toLowerCase().includes(query)
     );
   };
 
@@ -427,7 +443,7 @@ export default function FriendsScreen() {
         const allRequests = [...pendingRequests, ...sentRequests];
         const filteredRequests = filterUsers(allRequests);
         return filteredRequests.map(request => {
-          const isPending = pendingRequests.some(p => p.id === request.id);
+          const isPending = pendingRequests.some((p: User) => p.id === request.id);
           return (
             <FriendListItem
               key={request.id}

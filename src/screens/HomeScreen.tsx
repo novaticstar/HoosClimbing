@@ -11,7 +11,10 @@ import { Menu } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FriendCard } from '../components/FriendCard';
 import { useAuth } from '../context/AuthContext';
-import { useFriends } from '../hooks/useFriends';
+import { useAppStateSync } from '../hooks/useAppStateSync';
+import { useRealtimeFriends as useFriends } from '../hooks/useRealtimeFriends';
+import { useRealtimeNotifications } from '../hooks/useRealtimeNotifications';
+import { User } from '../services/friendsService';
 import { useTopPost } from '../hooks/useTopPost';
 import type { AppTabsParamList } from '../navigation/AppTabs';
 import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
@@ -29,13 +32,20 @@ export default function HomeScreen() {
     cancelFriendRequest,
     refresh
   } = useFriends();
+  const { unreadCount } = useRealtimeNotifications();
   const navigation = useNavigation<BottomTabNavigationProp<AppTabsParamList>>();
   const [menuVisible, setMenuVisible] = useState(false);
+
+  // Sync data when app comes to foreground
+  useAppStateSync(() => {
+    refresh();
+  });
 
   const openMenu = () => setMenuVisible(true);
   const closeMenu = () => setMenuVisible(false);
 
   const hasPendingRequests = pendingRequests.length > 0;
+  const totalNotifications = unreadCount > 0 ? unreadCount : pendingRequests.length;
 
   const { post: topPost, loading: topPostLoading } = useTopPost();
 
@@ -63,10 +73,10 @@ export default function HomeScreen() {
               <View style={styles.headerButtons}>
                 <TouchableOpacity style={styles.headerButton}>
                   <Ionicons name="notifications-outline" size={24} color={colors.textSecondary} />
-                  {hasPendingRequests && (
+                  {totalNotifications > 0 && (
                     <View style={[styles.notificationBadge, { backgroundColor: colors.accent }]}>
                       <ThemedText variant="caption" color="onAccent" style={styles.badgeText}>
-                        {pendingRequests.length}
+                        {totalNotifications}
                       </ThemedText>
                     </View>
                   )}
@@ -104,10 +114,7 @@ export default function HomeScreen() {
               activeOpacity={0.7}
             >
               <ThemedText variant="h3" color="text">
-                Friends
-              </ThemedText>
-              <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
-                →
+                Friends →
               </ThemedText>
             </TouchableOpacity>
             {/* Current Friends */}
@@ -125,7 +132,7 @@ export default function HomeScreen() {
                   nestedScrollEnabled={true}
                   style={{ overflow: 'visible' }}
                 >
-                  {friends.map((user) => (
+                  {friends.map((user: User) => (
                     <FriendCard
                       key={user.id}
                       user={user}
@@ -141,11 +148,12 @@ export default function HomeScreen() {
           {/* Feed Section */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <ThemedText variant="h3" color="text">Feed</ThemedText>
-              <TouchableOpacity onPress={() => navigation.navigate('Feed')}>
-                <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
-                  →
-                </ThemedText>
+              <TouchableOpacity 
+              style={styles.sectionHeader}
+              onPress={() => navigation.navigate('Feed')}
+              activeOpacity={0.7}
+            >
+                <ThemedText variant="h3" color="text">Feed →</ThemedText>
               </TouchableOpacity>
             </View>
 
@@ -185,13 +193,12 @@ export default function HomeScreen() {
 
           {/* Events Section */}
           <View style={styles.section}>
-            <TouchableOpacity
-                style={styles.sectionHeader}
-                onPress={() => navigation.navigate('EventsTest')}
-                activeOpacity={0.7}
-              >
-                <ThemedText variant="h3" color="text">Events</ThemedText>
-                <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>→</ThemedText>
+              <TouchableOpacity 
+              style={styles.sectionHeader}
+              onPress={() => navigation.navigate('EventsTest')}
+              activeOpacity={0.7}
+            >
+                <ThemedText variant="h3" color="text">Events →</ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => navigation.navigate('EventsTest')}>
@@ -210,36 +217,6 @@ export default function HomeScreen() {
                   </View>
                 </Card>
               </TouchableOpacity>
-          </View>
-
-          {/* Your Posts Section */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-            <TouchableOpacity onPress={() => navigation.navigate('You')}>
-              <ThemedText variant="h3" color="text">
-                Your Posts 
-              </ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigation.navigate('You')}>
-                <ThemedText variant="body" color="textSecondary" style={styles.sectionArrow}>
-                →
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.postsGrid}>
-              {[1, 2, 3, 4].map((post) => (
-                <View key={post} style={styles.postItem}>
-                  <View style={[styles.postImage, { backgroundColor: colors.surfaceVariant }]}>
-                    <ThemedText variant="h4" color="textSecondary">
-                      🏔️
-                    </ThemedText>
-                  </View>
-                  <ThemedText variant="caption" color="text" style={styles.postLabel}>
-                    Label
-                  </ThemedText>
-                </View>
-              ))}
-            </View>
           </View>
         </Container>
       </ScrollView>

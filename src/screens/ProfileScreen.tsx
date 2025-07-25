@@ -8,9 +8,22 @@ import  { useEffect, useState } from 'react';
 import { Modal, TextInput, Button, Text } from 'react-native'; // Add these
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../lib/supabase';
+import * as FileSystem from 'expo-file-system';
+import { Platform } from 'react-native';
+import * as mime from 'mime';
 
+import Constants from 'expo-constants';
+console.log('expoConfig.extra:', Constants.expoConfig?.extra);
 
 export default function ProfileScreen() {
+  const extra = Constants.expoConfig?.extra;
+
+if (!extra?.supabaseAnonKey || !extra?.supabaseUrl) {
+ 
+  throw new Error('Missing Supabase keys in expo config!');
+}
+  const supabaseAnonKey = extra.supabaseAnonKey;
+  const supabaseUrl = extra.supabaseUrl;
   const { colors } = useTheme();
   const {friends } = useFriends();
   const { updateProfile } = useAuth();
@@ -21,7 +34,9 @@ export default function ProfileScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [bio, setBio] = useState('This is a short bio about the user. It can include hobbies, interests, or anything else."');
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [profilePicture, setProfilePicture] = useState(user?.user_metadata?.avatar_url || '');
+  const [profilePicture, setProfilePicture] = useState<string | null>(
+      user?.user_metadata?.avatar_url || null
+    );
 
   async function pickImage() {
     // Ask for permission first (especially on mobile)
@@ -77,20 +92,56 @@ async function fetchBio() {
 
   return data.bio;
 }
+async function fetchAvatarUrl() {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    console.error('User not authenticated:', authError);
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('avatar_url')
+    .eq('id', user.id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching avatar_url:', error);
+    return null;
+  }
+
+  return data.avatar_url;
+}
+function base64ToBlob(base64: string, mimeType: string) {
+  const byteCharacters = atob(base64);
+  const byteNumbers = new Array(byteCharacters.length).fill(0).map((_, i) => byteCharacters.charCodeAt(i));
+  const byteArray = new Uint8Array(byteNumbers);
+  return new Blob([byteArray], { type: mimeType });
+}
+function getMimeType(uri: string) {
+  if (uri.endsWith('.jpg') || uri.endsWith('.jpeg')) return 'image/jpeg';
+  if (uri.endsWith('.png')) return 'image/png';
+  if (uri.endsWith('.gif')) return 'image/gif';
+  return 'application/octet-stream';
+}
 
 
   useEffect(() => {
-    async function loadBio() {
+    async function loadData() {
       const fetchedBio = await fetchBio();
+      const fetchedAvatar = await fetchAvatarUrl();
       if (fetchedBio) {
         setBio(fetchedBio);
       }
+      
+      if (fetchedAvatar) setProfilePicture(fetchedAvatar);
     }
 
-    loadBio();
+    loadData();
   }, []);
 
-
+  
 
     return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -99,9 +150,14 @@ async function fetchBio() {
           {/* Profile Header */}
           <View style={styles.header}>
             <Image
-              source={ require('../../assets/images/splash-icon.png') } // Mock profile picture
+              source={
+                profilePicture
+                  ? { uri: profilePicture }
+                  : require('../../assets/images/splash-icon.png')
+              }
               style={styles.profilePicture}
             />
+            
             <View style={styles.headerInfo}>
               <ThemedText variant="h3" color="text">
                 {user?.user_metadata?.username || 'Username'}
@@ -116,7 +172,7 @@ async function fetchBio() {
           <View style={styles.stats}>
             <View style={styles.statItem}>
               <ThemedText variant="h3" color="text">
-                120
+                0
               </ThemedText>
               <ThemedText variant="body" color="textSecondary">
                 Posts
@@ -174,10 +230,109 @@ async function fetchBio() {
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <Button title="Cancel" onPress={() => setModalVisible(false)} />
-        <Button title="Save" onPress={() => {
+        <Button title="Save" onPress={async () => {
           // Save logic here (save bio using the bio variable)
           bio? updateBio(bio) : null;
           // Save profile picture logic here
+          if (imageUri && user) {
+            var blob = null;
+            // Ensure file extension (fallback to jpg if none)
+            const fileExtMatch = imageUri.match(/\.(\w+)(\?.*)?$/);
+            const fileExt = fileExtMatch ? fileExtMatch[1] : 'jpg';
+            
+
+            // Generate filename and filepath in Supabase storage
+            const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+            const filePath = fileName;
+            try {
+              // Fetch image from local URI and convert to blob
+              if (Platform.OS === 'web') {
+                const response = await fetch(imageUri);
+                blob = await response.blob();
+
+
+                // upload blob
+                // Upload to Supabase
+              const { data, error: uploadError } = await supabase.storage
+              .from('profile-pictures') // bucket name
+              .upload(filePath, blob, {
+                contentType: blob.type,
+                upsert: true,
+              });
+             if (uploadError) {
+              console.error('Upload failed:', uploadError);
+            } else {
+              const { data: urlData } = supabase.storage
+                .from('profile-pictures')
+                .getPublicUrl(filePath);
+
+              const publicUrl = urlData?.publicUrl;
+              console.log('Public URL:', urlData?.publicUrl);
+                console.log('File Path:', filePath);
+              // Update avatar_url in profile
+              const { error: updateError } = await updateProfile({
+                avatar_url: publicUrl,
+              });
+    
+              if (updateError) {
+                console.error('Failed to update avatar URL:', updateError);
+              }
+              else{
+                // Update local state so header updates immediately:
+                await supabase.auth.updateUser({
+                  data: { avatar_url: publicUrl }
+                });
+              setProfilePicture(publicUrl);
+              console.log('Profile picture updated successfully:', publicUrl);
+              }
+            }
+              } else {
+                        // Supabase upload via fetch
+            const file = {
+              uri: imageUri,
+              name: fileName,
+              type: getMimeType(imageUri) || 'image/jpeg',
+            };
+            const formData = new FormData();
+            formData.append('file', file as any);
+            const sessionResult = await supabase.auth.getSession();
+            const accessToken = sessionResult.data?.session?.access_token;
+            console.log("Upload info", {
+              filePath,
+              projectUrl: `https://lszaovkgknpurhsjksqu.supabase.co`,
+              accessToken: accessToken?.slice(0, 10) + '...',
+            });
+            const res = await fetch(`${supabaseUrl}storage/v1/object/profile-pictures/${filePath}`, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                apikey: supabaseAnonKey,
+              },
+              body: formData,
+            });
+
+            if (!res.ok) {
+              const errorText = await res.text();
+              console.error('Upload failed:', errorText);
+              return;
+            }
+
+            const publicUrl = supabase.storage.from('profile-pictures').getPublicUrl(filePath).data.publicUrl;
+
+            // Update user profile
+            await updateProfile({ avatar_url: publicUrl });
+            await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
+            setProfilePicture(publicUrl);
+            console.log('Profile picture updated successfully:', publicUrl);
+
+            }      
+          }
+              
+           catch (e) {
+              console.error('Error uploading image:', e);
+            }
+          }
+            
           setModalVisible(false);
         }} />
       </View>
