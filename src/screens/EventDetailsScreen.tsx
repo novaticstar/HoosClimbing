@@ -7,15 +7,26 @@ import { ScrollView, View, StyleSheet, TouchableOpacity, Image } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText, spacing, Container, Card, useTheme } from '../theme/ui';
 import { Ionicons } from '@expo/vector-icons';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { EventsStackParamList } from '../navigation/EventsStack';
+
+type EventDetailsScreenNavigationProp = StackNavigationProp<EventsStackParamList, 'EventDetails'>;
+type EventDetailsScreenRouteProp = RouteProp<EventsStackParamList, 'EventDetails'>;
 
 // Placeholder avatar generator
 const getInitials = (name: string) => name.split(' ').map(w => w[0]).join('').toUpperCase();
 
 export default function EventDetailsScreen() {
   const { colors } = useTheme();
+  const navigation = useNavigation<EventDetailsScreenNavigationProp>();
+  const route = useRoute<EventDetailsScreenRouteProp>();
+
+  const { eventId } = route.params;
 
   const event = {
-    id: '1',
+    id: eventId,
     title: 'Horseshoe Hell',
     description: 'Multi-day festival full of bouldering challengers and climbing competitions.',
     date: 'September 24-28',
@@ -38,10 +49,18 @@ export default function EventDetailsScreen() {
 
   const handleToggleAttend = () => setIsAttending(!isAttending);
 
+  const handleGoBack = () => {
+      navigation.goBack();
+    };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView>
         <Container style={styles.content}>
+            <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+            <ThemedText variant="body" color="text" style={styles.backText}>Back to Events</ThemedText>
+          </TouchableOpacity>
 
           {/* Event Title */}
           <ThemedText variant="h2" color="text" style={styles.title}>
@@ -132,4 +151,12 @@ const styles = StyleSheet.create({
   showAllButton: {
     alignSelf: 'flex-start',
   },
+  backButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: spacing.md,
+    },
+    backText: {
+      marginLeft: spacing.sm,
+    },
 });

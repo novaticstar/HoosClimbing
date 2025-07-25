@@ -11,7 +11,8 @@ import TabBarBackground from '../components/ui/TabBarBackground';
 import FeedScreen from '../screens/FeedScreen';
 import FriendsScreen from '../screens/FriendsScreen';
 import HomeScreen from '../screens/HomeScreen';
-import EventsScreen from '../screens/EventsScreen';
+//import EventsScreen from '../screens/EventsScreen';
+import EventsStack from './EventsStack';
 import ProfileScreen from '../screens/ProfileScreen';
 import UploadScreen from '../screens/UploadScreen';
 import { uvaColors } from '../theme/colors';
@@ -83,7 +84,7 @@ export default function AppTabs() {
           ),
         }}
       />
-            <Tab.Screen
+      <Tab.Screen
         name="Friends"
         component={FriendsScreen}
         options={{
@@ -95,7 +96,7 @@ export default function AppTabs() {
       />
       <Tab.Screen
         name="EventsTest"
-        component={EventsScreen}
+        component={EventsStack}
         options={{
             title: 'EventsTest',
           tabBarIcon: ({ color }) => (

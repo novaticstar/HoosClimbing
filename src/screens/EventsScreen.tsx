@@ -3,12 +3,18 @@
  */
 
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { spacing, Container, ThemedText, Card, useTheme } from '../theme/ui';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
+import type { EventsStackParamList } from '../navigation/EventsStack';
+
+type EventsScreenNavigationProp = StackNavigationProp<EventsStackParamList, 'EventsList'>;
 
 export default function EventsScreen() {
   const { colors } = useTheme();
+  const navigation = useNavigation<EventsScreenNavigationProp>();
 
   // Mock data
   const popularEvent = {
@@ -24,6 +30,10 @@ export default function EventsScreen() {
     { id: '4', title: 'Intro to Knot Tying', description: 'Workshop with various climbing knots', date: 'August 3' },
   ];
 
+  const handleEventPress = (eventId: string) => {
+      navigation.navigate('EventDetails', { eventId });
+    };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -32,11 +42,13 @@ export default function EventsScreen() {
 
           {/* Popular Event */}
           <ThemedText variant="h3" color="text" style={styles.sectionTitle}>Popular Event</ThemedText>
-          <Card style={styles.popularCard}>
-            <ThemedText variant="h4" color="text">{popularEvent.title}</ThemedText>
-            <ThemedText variant="body" color="textSecondary">{popularEvent.description}</ThemedText>
-            <ThemedText variant="caption" color="accent">{popularEvent.date}</ThemedText>
-          </Card>
+          <TouchableOpacity onPress={() => handleEventPress(popularEvent.id)}>
+            <Card style={styles.popularCard}>
+              <ThemedText variant="h4" color="text">{popularEvent.title}</ThemedText>
+              <ThemedText variant="body" color="textSecondary">{popularEvent.description}</ThemedText>
+              <ThemedText variant="caption" color="accent">{popularEvent.date}</ThemedText>
+            </Card>
+          </TouchableOpacity>
 
           {/* Upcoming Events */}
           <ThemedText variant="h3" color="text" style={styles.sectionTitle}>Upcoming Events</ThemedText>
