@@ -1,12 +1,10 @@
 /**
  * useRealtimeFriends Hook
- * Real-time friends management with Supabase subscriptions
+ * Simplified and reliable friends management with optimistic updates
  */
 
-import { RealtimeChannel } from '@supabase/supabase-js';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabase';
 import { FriendsService, User } from '../services/friendsService';
 
 export function useRealtimeFriends() {
@@ -17,27 +15,24 @@ export function useRealtimeFriends() {
   const [sentRequests, setSentRequests] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  
-  // Keep track of subscriptions
-  const subscriptionRef = useRef<RealtimeChannel | null>(null);
 
-  const loadFriends = async () => {
+  const loadFriends = async (showRefreshing = false) => {
     if (!user?.id) return;
     
+    if (showRefreshing) setRefreshing(true);
+    
     try {
+      console.log('Loading friends data for user:', user.id);
+      
       // Ensure user profile exists first
       const profileEnsured = await FriendsService.ensureUserProfile(user);
       if (!profileEnsured) {
         console.error('Failed to ensure user profile exists');
-        setLoading(false);
-        setRefreshing(false);
         return;
       }
       
-      // Debug: List all profiles and create test users if needed
+      // Create test users if needed for development
       const allProfiles = await FriendsService.listAllProfiles();
-      console.log('Total profiles in database:', allProfiles.length);
-      
       if (allProfiles.length < 3) {
         console.log('Creating test users for development...');
         await FriendsService.createTestUsers();
@@ -50,6 +45,13 @@ export function useRealtimeFriends() {
         FriendsService.getSentRequests(user.id)
       ]);
 
+      console.log('Loaded friends data:', {
+        friends: friendsData.length,
+        suggestions: suggestionsData.length,
+        pending: pendingData.length,
+        sent: sentData.length
+      });
+
       setFriends(friendsData);
       setSuggestedUsers(suggestionsData);
       setPendingRequests(pendingData);
@@ -58,144 +60,8 @@ export function useRealtimeFriends() {
       console.error('Error loading friends data:', error);
     } finally {
       setLoading(false);
-      setRefreshing(false);
+      if (showRefreshing) setRefreshing(false);
     }
-  };
-
-  // Real-time subscription setup
-  useEffect(() => {
-    if (!user?.id) return;
-
-    // Create a subscription to the friendships table
-    const subscription = supabase
-      .channel('friendships-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
-          schema: 'public',
-          table: 'friendships',
-          filter: `user_id=eq.${user.id},friend_id=eq.${user.id}`, // Listen to changes involving this user
-        },
-        (payload) => {
-          console.log('Real-time friendship change:', payload);
-          handleFriendshipChange(payload);
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles',
-        },
-        (payload) => {
-          console.log('Real-time profile change:', payload);
-          handleProfileChange(payload);
-        }
-      )
-      .subscribe();
-
-    subscriptionRef.current = subscription;
-
-    // Cleanup subscription on unmount
-    return () => {
-      if (subscriptionRef.current) {
-        subscriptionRef.current.unsubscribe();
-      }
-    };
-  }, [user?.id]);
-
-  const handleFriendshipChange = async (payload: any) => {
-    const { eventType, new: newRecord, old: oldRecord } = payload;
-    
-    switch (eventType) {
-      case 'INSERT':
-        // New friend request received or sent
-        if (newRecord.friend_id === user?.id && newRecord.status === 'pending') {
-          // Someone sent us a friend request
-          await refreshPendingRequests();
-        } else if (newRecord.user_id === user?.id && newRecord.status === 'pending') {
-          // We sent a friend request
-          await refreshSentRequests();
-        } else if (newRecord.status === 'accepted') {
-          // Friend request was accepted
-          await loadFriends(); // Refresh all data
-        }
-        break;
-        
-      case 'UPDATE':
-        // Friend request status changed
-        if (newRecord.status === 'accepted') {
-          // Friend request accepted
-          await loadFriends();
-        } else if (newRecord.status === 'rejected') {
-          // Friend request rejected
-          await refreshPendingRequests();
-          await refreshSentRequests();
-        }
-        break;
-        
-      case 'DELETE':
-        // Friendship removed or request cancelled
-        await loadFriends();
-        break;
-    }
-  };
-
-  const handleProfileChange = async (payload: any) => {
-    // If someone updates their profile, we might need to refresh suggestions
-    // This is less critical but can help keep user data fresh
-    const { eventType, new: newRecord } = payload;
-    
-    if (eventType === 'INSERT') {
-      // New user joined, refresh suggestions
-      await refreshSuggestions();
-    } else if (eventType === 'UPDATE') {
-      // User updated their profile, update if they're in our lists
-      updateUserInLists(newRecord);
-    }
-  };
-
-  const refreshPendingRequests = async () => {
-    if (!user?.id) return;
-    try {
-      const pendingData = await FriendsService.getPendingRequests(user.id);
-      setPendingRequests(pendingData);
-    } catch (error) {
-      console.error('Error refreshing pending requests:', error);
-    }
-  };
-
-  const refreshSentRequests = async () => {
-    if (!user?.id) return;
-    try {
-      const sentData = await FriendsService.getSentRequests(user.id);
-      setSentRequests(sentData);
-    } catch (error) {
-      console.error('Error refreshing sent requests:', error);
-    }
-  };
-
-  const refreshSuggestions = async () => {
-    if (!user?.id) return;
-    try {
-      const suggestionsData = await FriendsService.getSuggestedUsers(user.id, 8);
-      setSuggestedUsers(suggestionsData);
-    } catch (error) {
-      console.error('Error refreshing suggestions:', error);
-    }
-  };
-
-  const updateUserInLists = (updatedUser: User) => {
-    // Update the user's info across all lists if they exist
-    const updateUserInArray = (users: User[]) =>
-      users.map(u => u.id === updatedUser.id ? { ...u, ...updatedUser } : u);
-
-    setFriends(prev => updateUserInArray(prev));
-    setSuggestedUsers(prev => updateUserInArray(prev));
-    setPendingRequests(prev => updateUserInArray(prev));
-    setSentRequests(prev => updateUserInArray(prev));
   };
 
   const sendFriendRequest = async (friendId: string) => {
@@ -204,44 +70,165 @@ export function useRealtimeFriends() {
       return false;
     }
     
-    console.log('useRealtimeFriends: Sending friend request from', user.id, 'to', friendId);
-    const success = await FriendsService.sendFriendRequest(user.id, friendId);
+    console.log('Sending friend request from', user.id, 'to', friendId);
     
-    if (success) {
-      // Remove from suggested users immediately for better UX
-      setSuggestedUsers(prev => prev.filter(u => u.id !== friendId));
-      // Real-time subscription will handle adding to sent requests
+    // Find the user in suggestions
+    const userToMove = suggestedUsers.find(u => u.id === friendId);
+    
+    // Optimistic update: Remove from suggestions immediately
+    setSuggestedUsers(prev => prev.filter(u => u.id !== friendId));
+    
+    // Optimistic update: Add to sent requests
+    if (userToMove) {
+      setSentRequests(prev => [...prev, userToMove]);
     }
-    return success;
-  };
-
-  const cancelFriendRequest = async (friendId: string) => {
-    if (!user?.id) return false;
     
-    const success = await FriendsService.cancelFriendRequest(user.id, friendId);
-    // Real-time subscription will handle UI updates
-    return success;
+    try {
+      const success = await FriendsService.sendFriendRequest(user.id, friendId);
+      
+      if (!success) {
+        // Rollback optimistic updates if failed
+        console.log('Friend request failed, rolling back optimistic updates');
+        if (userToMove) {
+          setSuggestedUsers(prev => [...prev, userToMove]);
+          setSentRequests(prev => prev.filter(u => u.id !== friendId));
+        }
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      // Rollback optimistic updates
+      if (userToMove) {
+        setSuggestedUsers(prev => [...prev, userToMove]);
+        setSentRequests(prev => prev.filter(u => u.id !== friendId));
+      }
+      return false;
+    }
   };
 
   const acceptFriendRequest = async (friendId: string) => {
     if (!user?.id) return false;
     
-    const success = await FriendsService.acceptFriendRequest(user.id, friendId);
-    // Real-time subscription will handle UI updates
-    return success;
+    console.log('Accepting friend request from', friendId);
+    
+    // Find the user in pending requests
+    const userToMove = pendingRequests.find(u => u.id === friendId);
+    
+    // Optimistic update: Remove from pending requests
+    setPendingRequests(prev => prev.filter(u => u.id !== friendId));
+    
+    // Optimistic update: Add to friends
+    if (userToMove) {
+      setFriends(prev => [...prev, userToMove]);
+    }
+    
+    try {
+      const success = await FriendsService.acceptFriendRequest(user.id, friendId);
+      
+      if (!success) {
+        // Rollback optimistic updates if failed
+        console.log('Accept friend request failed, rolling back optimistic updates');
+        if (userToMove) {
+          setFriends(prev => prev.filter(u => u.id !== friendId));
+          setPendingRequests(prev => [...prev, userToMove]);
+        }
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Error accepting friend request:', error);
+      // Rollback optimistic updates
+      if (userToMove) {
+        setFriends(prev => prev.filter(u => u.id !== friendId));
+        setPendingRequests(prev => [...prev, userToMove]);
+      }
+      return false;
+    }
   };
 
   const removeFriend = async (friendId: string) => {
     if (!user?.id) return false;
     
-    const success = await FriendsService.removeFriend(user.id, friendId);
-    // Real-time subscription will handle UI updates
-    return success;
+    console.log('Removing friend', friendId);
+    
+    // Find the user in friends
+    const userToMove = friends.find(u => u.id === friendId);
+    
+    // Optimistic update: Remove from friends immediately
+    setFriends(prev => prev.filter(f => f.id !== friendId));
+    
+    // Optimistic update: Add back to suggestions
+    if (userToMove) {
+      setSuggestedUsers(prev => [...prev, userToMove]);
+    }
+    
+    try {
+      const success = await FriendsService.removeFriend(user.id, friendId);
+      
+      if (!success) {
+        // Rollback optimistic updates if failed
+        console.log('Remove friend failed, rolling back optimistic updates');
+        if (userToMove) {
+          setFriends(prev => [...prev, userToMove]);
+          setSuggestedUsers(prev => prev.filter(u => u.id !== friendId));
+        }
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Error removing friend:', error);
+      // Rollback optimistic updates
+      if (userToMove) {
+        setFriends(prev => [...prev, userToMove]);
+        setSuggestedUsers(prev => prev.filter(u => u.id !== friendId));
+      }
+      return false;
+    }
+  };
+
+  const cancelFriendRequest = async (friendId: string) => {
+    if (!user?.id) return false;
+    
+    console.log('Cancelling friend request to', friendId);
+    
+    // Find the user in sent requests
+    const userToMove = sentRequests.find(u => u.id === friendId);
+    
+    // Optimistic update: Remove from sent requests
+    setSentRequests(prev => prev.filter(u => u.id !== friendId));
+    
+    // Optimistic update: Add back to suggestions
+    if (userToMove) {
+      setSuggestedUsers(prev => [...prev, userToMove]);
+    }
+    
+    try {
+      const success = await FriendsService.cancelFriendRequest(user.id, friendId);
+      
+      if (!success) {
+        // Rollback optimistic updates if failed
+        console.log('Cancel friend request failed, rolling back optimistic updates');
+        if (userToMove) {
+          setSentRequests(prev => [...prev, userToMove]);
+          setSuggestedUsers(prev => prev.filter(u => u.id !== friendId));
+        }
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Error cancelling friend request:', error);
+      // Rollback optimistic updates
+      if (userToMove) {
+        setSentRequests(prev => [...prev, userToMove]);
+        setSuggestedUsers(prev => prev.filter(u => u.id !== friendId));
+      }
+      return false;
+    }
   };
 
   const refresh = async () => {
-    setRefreshing(true);
-    await loadFriends();
+    await loadFriends(true);
   };
 
   // Initial load

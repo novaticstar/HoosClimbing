@@ -14,6 +14,7 @@ import { useAuth } from '../context/AuthContext';
 import { useAppStateSync } from '../hooks/useAppStateSync';
 import { useRealtimeFriends as useFriends } from '../hooks/useRealtimeFriends';
 import { useRealtimeNotifications } from '../hooks/useRealtimeNotifications';
+import { User } from '../services/friendsService';
 import { useTopPost } from '../hooks/useTopPost';
 import type { AppTabsParamList } from '../navigation/AppTabs';
 import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
@@ -131,7 +132,7 @@ export default function HomeScreen() {
                   nestedScrollEnabled={true}
                   style={{ overflow: 'visible' }}
                 >
-                  {friends.map((user) => (
+                  {friends.map((user: User) => (
                     <FriendCard
                       key={user.id}
                       user={user}

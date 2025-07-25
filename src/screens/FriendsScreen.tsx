@@ -404,9 +404,9 @@ export default function FriendsScreen() {
   };
 
   const getUserFriendshipStatus = (userId: string): 'friend' | 'pending' | 'sent' | 'none' => {
-    if (friends.some(f => f.id === userId)) return 'friend';
-    if (pendingRequests.some(r => r.id === userId)) return 'pending';
-    if (sentRequests.some(r => r.id === userId)) return 'sent';
+    if (friends.some((f: User) => f.id === userId)) return 'friend';
+    if (pendingRequests.some((r: User) => r.id === userId)) return 'pending';
+    if (sentRequests.some((r: User) => r.id === userId)) return 'sent';
     return 'none';
   };
 // TODO: FIX AND IMPLEMENT API, WE DO HAVE ACCESS TO THE USER'S FRIEND LIST
@@ -443,7 +443,7 @@ export default function FriendsScreen() {
         const allRequests = [...pendingRequests, ...sentRequests];
         const filteredRequests = filterUsers(allRequests);
         return filteredRequests.map(request => {
-          const isPending = pendingRequests.some(p => p.id === request.id);
+          const isPending = pendingRequests.some((p: User) => p.id === request.id);
           return (
             <FriendListItem
               key={request.id}
