@@ -33,7 +33,7 @@ export class FeedService {
           likes,
           created_at,
           updated_at,
-          profiles ( username, avatar_url )
+          profiles!user_id ( username, avatar_url )
         `)
         .order('created_at', { ascending: false });
 
@@ -45,9 +45,7 @@ export class FeedService {
       // Transform the data to match our type
       const transformedData = (data || []).map((item: any) => ({
         ...item,
-        profiles: Array.isArray(item.profiles) && item.profiles.length > 0 
-          ? item.profiles[0] 
-          : { username: 'Unknown User', avatar_url: null }
+        profiles: item.profiles || { username: 'Unknown User', avatar_url: null }
       }));
 
       return transformedData;
@@ -93,7 +91,7 @@ export class FeedService {
           likes,
           created_at,
           updated_at,
-          profiles ( username, avatar_url )
+          profiles!user_id ( username, avatar_url )
         `)
         .order('likes', { ascending: false })
         .order('created_at', { ascending: false })
@@ -109,9 +107,7 @@ export class FeedService {
       if (data) {
         return {
           ...data,
-          profiles: Array.isArray(data.profiles) && data.profiles.length > 0 
-            ? data.profiles[0] 
-            : { username: 'Unknown User', avatar_url: null }
+          profiles: data.profiles || { username: 'Unknown User', avatar_url: null }
         };
       }
 

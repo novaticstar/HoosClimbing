@@ -30,7 +30,9 @@ export class CommentService {
           user_id,
           text,
           created_at,
-          profiles ( username )
+          profiles!user_id (
+            username
+          )
         `)
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
@@ -43,9 +45,7 @@ export class CommentService {
       // Transform the data to match our type
       const transformedData = (data || []).map((comment: any) => ({
         ...comment,
-        profiles: Array.isArray(comment.profiles) && comment.profiles.length > 0 
-          ? comment.profiles[0] 
-          : { username: 'Unknown User' }
+        profiles: comment.profiles || { username: 'Unknown User' }
       }));
 
       return transformedData;
@@ -125,7 +125,9 @@ export class CommentService {
           user_id,
           text,
           created_at,
-          profiles ( username )
+          profiles!user_id (
+            username
+          )
         `)
         .eq('post_id', postId)
         .order('created_at', { ascending: false })
@@ -139,9 +141,7 @@ export class CommentService {
       // Transform the data to match our type
       const transformedData = (data || []).map((comment: any) => ({
         ...comment,
-        profiles: Array.isArray(comment.profiles) && comment.profiles.length > 0 
-          ? comment.profiles[0] 
-          : { username: 'Unknown User' }
+        profiles: comment.profiles || { username: 'Unknown User' }
       }));
 
       return transformedData;
