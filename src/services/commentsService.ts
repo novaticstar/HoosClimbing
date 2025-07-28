@@ -13,7 +13,7 @@ export interface Comment {
   created_at: string;
   profiles: {
     username: string;
-  };
+  } | null;
 }
 
 export class CommentService {
@@ -40,7 +40,15 @@ export class CommentService {
         return [];
       }
 
-      return data || [];
+      // Transform the data to match our type
+      const transformedData = (data || []).map((comment: any) => ({
+        ...comment,
+        profiles: Array.isArray(comment.profiles) && comment.profiles.length > 0 
+          ? comment.profiles[0] 
+          : { username: 'Unknown User' }
+      }));
+
+      return transformedData;
     } catch (err) {
       console.error('Exception fetching comments:', err);
       return [];
@@ -128,7 +136,15 @@ export class CommentService {
         return [];
       }
 
-      return data || [];
+      // Transform the data to match our type
+      const transformedData = (data || []).map((comment: any) => ({
+        ...comment,
+        profiles: Array.isArray(comment.profiles) && comment.profiles.length > 0 
+          ? comment.profiles[0] 
+          : { username: 'Unknown User' }
+      }));
+
+      return transformedData;
     } catch (err) {
       console.error('Exception fetching recent comments:', err);
       return [];

@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
-import { Card, spacing, ThemedText, useTheme } from '../theme/ui';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Card, spacing, ThemedText, useTheme } from '../theme/ui';
 import { CommentSection } from './CommentSection';
 
 type FeedCardProps = {
   post: any;
-  onLike: (postId: string, currentLikes: number) => void;
+  onLike: (postId: string, hasLiked: boolean) => void;
 };
 
 export const FeedCard = ({ post, onLike }: FeedCardProps) => {
@@ -35,7 +35,7 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
       {/* Actions */}
       <View style={styles.postActions}>
         <TouchableOpacity
-          onPress={() => onLike(post.id, post.likes)}
+          onPress={() => onLike(post.id, post.hasLiked)}
           style={styles.actionButton}
         >
           <Ionicons

@@ -15,7 +15,7 @@ export interface FeedItem {
   profiles: {
     username: string;
     avatar_url?: string;
-  };
+  } | null;
 }
 
 export class FeedService {
@@ -42,7 +42,15 @@ export class FeedService {
         return [];
       }
 
-      return data || [];
+      // Transform the data to match our type
+      const transformedData = (data || []).map((item: any) => ({
+        ...item,
+        profiles: Array.isArray(item.profiles) && item.profiles.length > 0 
+          ? item.profiles[0] 
+          : { username: 'Unknown User', avatar_url: null }
+      }));
+
+      return transformedData;
     } catch (err) {
       console.error('Exception fetching feed:', err);
       return [];
@@ -97,7 +105,17 @@ export class FeedService {
         return null;
       }
 
-      return data || null;
+      // Transform the data to match our type
+      if (data) {
+        return {
+          ...data,
+          profiles: Array.isArray(data.profiles) && data.profiles.length > 0 
+            ? data.profiles[0] 
+            : { username: 'Unknown User', avatar_url: null }
+        };
+      }
+
+      return null;
     } catch (err) {
       console.error('Exception in getTopPost:', err);
       return null;
