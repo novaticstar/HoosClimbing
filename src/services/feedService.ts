@@ -45,10 +45,13 @@ export class FeedService {
       // Transform the data to match our type
       const transformedData = (data || []).map((item: any) => ({
         ...item,
-        profiles: item.profiles || { username: 'Unknown User', avatar_url: null }
-      }));
+        profiles: {
+          ...item.profiles,
+          avatar_url: item.profiles?.avatar_url ?? null,
+        },
+    }));
 
-      return transformedData;
+    return transformedData;
     } catch (err) {
       console.error('Exception fetching feed:', err);
       return [];
@@ -104,14 +107,15 @@ export class FeedService {
       }
 
       // Transform the data to match our type
-      if (data) {
-        return {
+      return data
+      ? {
           ...data,
-          profiles: data.profiles || { username: 'Unknown User', avatar_url: null }
-        };
-      }
-
-      return null;
+          profiles: {
+            ...data.profiles,
+            avatar_url: data.profiles?.avatar_url ?? null,
+          },
+        }
+      : null;
     } catch (err) {
       console.error('Exception in getTopPost:', err);
       return null;

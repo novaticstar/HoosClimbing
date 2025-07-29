@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Card, spacing, ThemedText, useTheme } from '../theme/ui';
 import { CommentSection } from './CommentSection';
 
@@ -17,12 +17,29 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
     <Card style={styles.postCard}>
       {/* Header */}
       <View style={styles.postHeader}>
-        <ThemedText variant="h4" color="text">
-          {post.profiles?.username || 'Anonymous'}
-        </ThemedText>
-        <ThemedText variant="caption" color="textSecondary">
-          {new Date(post.created_at).toLocaleString()}
-        </ThemedText>
+        <View style={styles.avatarRow}>
+          {post.profiles?.avatar_url ? (
+            <Image
+              source={{ uri: post.profiles.avatar_url }}
+              style={styles.avatar}
+            />
+          ) : (
+            <View style={[styles.avatar, { backgroundColor: colors.surfaceVariant }]}>
+              <ThemedText variant="caption" color="textSecondary">
+                {post.profiles?.username?.charAt(0).toUpperCase() ?? '?'}
+              </ThemedText>
+            </View>
+          )}
+
+          <View>
+            <ThemedText variant="h4" color="text">
+              {post.profiles?.username || 'Anonymous'}
+            </ThemedText>
+            <ThemedText variant="caption" color="textSecondary">
+              {new Date(post.created_at).toLocaleString()}
+            </ThemedText>
+          </View>
+        </View>
       </View>
 
       {/* Content */}
@@ -87,5 +104,19 @@ const styles = StyleSheet.create({
   },
   likeText: {
     marginLeft: spacing.xs,
+  },
+  avatarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+    gap: spacing.sm,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
   },
 });
