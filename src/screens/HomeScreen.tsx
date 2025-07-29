@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Dimensions, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, Dimensions, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Menu } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FriendCard } from '../components/FriendCard';
@@ -169,14 +169,25 @@ export default function HomeScreen() {
                   </View>
                   <View style={styles.feedContent}>
                     <View style={styles.feedInfo}>
-                      <ThemedText variant="h4" color="text">
-                        {topPost.profiles?.username || 'Anonymous'}
-                      </ThemedText>
+                      <View style={styles.avatarRow}>
+                        {topPost.profiles?.avatar_url ? (
+                          <Image
+                            source={{ uri: topPost.profiles.avatar_url }}
+                            style={styles.avatar}
+                          />
+                        ) : (
+                          <View style={[styles.avatar, { backgroundColor: colors.surfaceVariant }]}>
+                            <ThemedText variant="caption" color="textSecondary">
+                              {topPost.profiles?.username?.charAt(0).toUpperCase() ?? '?'}
+                            </ThemedText>
+                          </View>
+                        )}
                       {topPost.description && (
                         <ThemedText variant="body" color="textSecondary">
                           {topPost.description}
                         </ThemedText>
                       )}
+                    </View>
                     </View>
                     <View style={[styles.playButton, { backgroundColor: colors.accent }]}>
                       <ThemedText variant="body" color="onAccent">▶</ThemedText>
@@ -326,6 +337,21 @@ const styles = StyleSheet.create({
   feedInfo: {
     flex: 1,
   },
+  avatarRow: {
+      paddingRight: spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: spacing.md,
+      gap: spacing.sm,
+    },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      overflow: 'hidden',
+    },
   playButton: {
     width: 40,
     height: 40,
