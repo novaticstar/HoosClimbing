@@ -72,10 +72,10 @@ export default function HomeScreen() {
           <View style={styles.header}>
             <View style={styles.headerTop}>
               <View style={styles.appTitle}>
-                <ThemedText variant="h1" color="accent">
+                <ThemedText variant="h2" color="accent">
                   Hoos
                 </ThemedText>
-                <ThemedText variant="h1" color="text">
+                <ThemedText variant="h2" color="text">
                   Climbing?
                 </ThemedText>
               </View>
