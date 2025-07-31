@@ -3,13 +3,13 @@
  * Displays comments for a post and allows users to add new ones
  */
 
-import React, { useEffect, useState } from 'react';
-import { formatDistanceToNow } from 'date-fns';
-import { View, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
-import { useTheme, spacing, ThemedText } from '../theme/ui';
-import { useAuth } from '../context/AuthContext';
-import { CommentService, Comment } from '../services/commentsService';
 import { Ionicons } from '@expo/vector-icons';
+import { formatDistanceToNow } from 'date-fns';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { useAuth } from '../context/AuthContext';
+import { Comment, CommentService } from '../services/commentsService';
+import { spacing, ThemedText, useTheme } from '../theme/ui';
 
 type Props = {
   postId: string;
@@ -39,7 +39,7 @@ export function CommentSection({ postId, collapsed = false }: Props) {
   };
 
   const handleAddComment = async () => {
-    if (!text.trim()) return;
+    if (!text.trim() || !user) return;
     const success = await CommentService.addComment(postId, user.id, text.trim());
     if (success) {
       setText('');
@@ -78,7 +78,7 @@ export function CommentSection({ postId, collapsed = false }: Props) {
         </ThemedText>
       ) : (
         comments.map((comment) => {
-          const isOwn = comment.user_id === user.id;
+          const isOwn = user && comment.user_id === user.id;
           const isEditing = editingCommentId === comment.id;
 
           return (
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
   actionRow: {
     flexDirection: 'row',
     gap: spacing.md,
-    marginTop: spacing.xxs,
+    marginTop: spacing.xs,
   },
   actionButton: {
     flexDirection: 'row',

@@ -13,7 +13,7 @@ export interface Comment {
   created_at: string;
   profiles: {
     username: string;
-  };
+  } | null;
 }
 
 export class CommentService {
@@ -30,7 +30,9 @@ export class CommentService {
           user_id,
           text,
           created_at,
-          profiles ( username )
+          profiles!user_id (
+            username
+          )
         `)
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
@@ -40,7 +42,13 @@ export class CommentService {
         return [];
       }
 
-      return data || [];
+      // Transform the data to match our type
+      const transformedData = (data || []).map((comment: any) => ({
+        ...comment,
+        profiles: comment.profiles || { username: 'Unknown User' }
+      }));
+
+      return transformedData;
     } catch (err) {
       console.error('Exception fetching comments:', err);
       return [];
@@ -117,7 +125,9 @@ export class CommentService {
           user_id,
           text,
           created_at,
-          profiles ( username )
+          profiles!user_id (
+            username
+          )
         `)
         .eq('post_id', postId)
         .order('created_at', { ascending: false })
@@ -128,7 +138,13 @@ export class CommentService {
         return [];
       }
 
-      return data || [];
+      // Transform the data to match our type
+      const transformedData = (data || []).map((comment: any) => ({
+        ...comment,
+        profiles: comment.profiles || { username: 'Unknown User' }
+      }));
+
+      return transformedData;
     } catch (err) {
       console.error('Exception fetching recent comments:', err);
       return [];

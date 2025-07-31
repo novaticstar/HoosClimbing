@@ -15,7 +15,7 @@ export interface FeedItem {
   profiles: {
     username: string;
     avatar_url?: string;
-  };
+  } | null;
 }
 
 export class FeedService {
@@ -33,7 +33,7 @@ export class FeedService {
           likes,
           created_at,
           updated_at,
-          profiles ( username, avatar_url )
+          profiles!user_id ( username, avatar_url )
         `)
         .order('created_at', { ascending: false });
 
@@ -42,7 +42,16 @@ export class FeedService {
         return [];
       }
 
-      return data || [];
+      // Transform the data to match our type
+      const transformedData = (data || []).map((item: any) => ({
+        ...item,
+        profiles: {
+          ...item.profiles,
+          avatar_url: item.profiles?.avatar_url ?? null,
+        },
+    }));
+
+    return transformedData;
     } catch (err) {
       console.error('Exception fetching feed:', err);
       return [];
@@ -85,7 +94,7 @@ export class FeedService {
           likes,
           created_at,
           updated_at,
-          profiles ( username, avatar_url )
+          profiles!user_id ( username, avatar_url )
         `)
         .order('likes', { ascending: false })
         .order('created_at', { ascending: false })
@@ -97,7 +106,16 @@ export class FeedService {
         return null;
       }
 
-      return data || null;
+      // Transform the data to match our type
+      return data
+      ? {
+          ...data,
+          profiles: {
+            ...data.profiles,
+            avatar_url: data.profiles?.avatar_url ?? null,
+          },
+        }
+      : null;
     } catch (err) {
       console.error('Exception in getTopPost:', err);
       return null;
