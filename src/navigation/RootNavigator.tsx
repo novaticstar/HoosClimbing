@@ -9,13 +9,17 @@ import * as Linking from 'expo-linking';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { Container, spacing, ThemedText } from '../theme/ui';
+import { Container, spacing, ThemedText, useTheme } from '../theme/ui';
 import AppTabs from './AppTabs';
 import AuthStack from './AuthStack';
-import HomeScreen from '../screens/HomeScreen';
-import ProfileScreen from '../screens/ProfileScreen';
+import EventsStack from './EventsStack';
 
-const Stack = createStackNavigator();
+export type RootStackParamList = {
+  AppTabs: undefined;
+  EventsTest: undefined;
+};
+
+const Stack = createStackNavigator<RootStackParamList>();
 // Loading screen component
 function LoadingScreen() {
   return (
@@ -32,6 +36,7 @@ function LoadingScreen() {
 
 export default function RootNavigator() {
   const { session, loading } = useAuth();
+  const { colors } = useTheme();
   const [isPasswordReset, setIsPasswordReset] = useState(false);
 
   useEffect(() => {
@@ -78,7 +83,20 @@ export default function RootNavigator() {
 
   return (
     <NavigationContainer>
-      {session ? <AppTabs /> : <AuthStack />}
+      {session ? (
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="AppTabs" component={AppTabs} />
+          <Stack.Screen 
+            name="EventsTest" 
+            component={EventsStack}
+            options={{
+              headerShown: false
+            }}
+          />
+        </Stack.Navigator>
+      ) : (
+        <AuthStack />
+      )}
     </NavigationContainer>
   );
 }

@@ -4,9 +4,11 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { CompositeNavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import React, { useState } from 'react';
-import { Image, Dimensions, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Menu } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FriendCard } from '../components/FriendCard';
@@ -14,9 +16,10 @@ import { useAuth } from '../context/AuthContext';
 import { useAppStateSync } from '../hooks/useAppStateSync';
 import { useRealtimeFriends as useFriends } from '../hooks/useRealtimeFriends';
 import { useRealtimeNotifications } from '../hooks/useRealtimeNotifications';
-import { User } from '../services/friendsService';
 import { useTopPost } from '../hooks/useTopPost';
 import type { AppTabsParamList } from '../navigation/AppTabs';
+import type { RootStackParamList } from '../navigation/RootNavigator';
+import { User } from '../services/friendsService';
 import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
 export default function HomeScreen() {
   const { colors } = useTheme();
@@ -33,7 +36,12 @@ export default function HomeScreen() {
     refresh
   } = useFriends();
   const { unreadCount } = useRealtimeNotifications();
-  const navigation = useNavigation<BottomTabNavigationProp<AppTabsParamList>>();
+  const navigation = useNavigation<
+    CompositeNavigationProp<
+      BottomTabNavigationProp<AppTabsParamList>,
+      StackNavigationProp<RootStackParamList>
+    >
+  >();
   const [menuVisible, setMenuVisible] = useState(false);
 
   // Sync data when app comes to foreground
