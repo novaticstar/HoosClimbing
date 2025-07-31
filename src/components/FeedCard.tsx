@@ -7,13 +7,13 @@ import {
   Dimensions, 
   Image, 
   Modal, 
+  PanResponder,
   ScrollView,
   StyleSheet, 
   TouchableOpacity, 
   TouchableWithoutFeedback,
   View 
 } from 'react-native';
-import { PanGestureHandler, PanGestureHandlerGestureEvent } from 'react-native-gesture-handler';
 import { FeedStackParamList } from '../navigation/FeedStack';
 import { spacing, ThemedText, useTheme } from '../theme/ui';
 import { CommentSection } from './CommentSection';
@@ -31,11 +31,11 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
   const { colors } = useTheme();
   const navigation = useNavigation<FeedCardNavigationProp>();
   const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   
   // Animation refs
   const translateY = useRef(new Animated.Value(screenWidth)).current;
   const backgroundOpacity = useRef(new Animated.Value(0)).current;
-  const modalHeight = useRef(new Animated.Value(0.85)).current;
   
   const openModal = () => {
     setShowCommentsModal(true);
@@ -70,25 +70,34 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
       useNativeDriver: false,
     }).start(() => {
       setShowCommentsModal(false);
-      modalHeight.setValue(0.85); // Reset height
+      setIsFullScreen(false); // Reset full screen state
     });
   };
   
-  const onGestureEvent = (event: PanGestureHandlerGestureEvent) => {
-    const { translationY, velocityY } = event.nativeEvent;
-    
-    if (translationY < -100 && velocityY < -500) {
-      // Swipe up to full screen
-      Animated.timing(modalHeight, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: false,
-      }).start();
-    } else if (translationY > 100 || velocityY > 500) {
-      // Swipe down to close
-      closeModal();
-    }
-  };
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        return Math.abs(gestureState.dy) > 20;
+      },
+      onPanResponderGrant: () => {
+        // Gesture started
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        // Handle the gesture movement if needed
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        const { dy, vy } = gestureState;
+        
+        if (dy < -100 && vy < -0.5) {
+          // Swipe up to full screen
+          setIsFullScreen(true);
+        } else if (dy > 100 || vy > 0.5) {
+          // Swipe down to close
+          closeModal();
+        }
+      },
+    })
+  ).current;
 
   // Stub images for demo purposes
   const stubImages = [
@@ -216,20 +225,17 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
             ]}
           >
             <TouchableWithoutFeedback onPress={() => {}}>
-              <PanGestureHandler onGestureEvent={onGestureEvent}>
-                <Animated.View 
-                  style={[
-                    styles.modalContainer, 
-                    { 
-                      backgroundColor: colors.background,
-                      transform: [{ translateY }],
-                      height: modalHeight.interpolate({
-                        inputRange: [0.85, 1],
-                        outputRange: ['85%', '100%']
-                      })
-                    }
-                  ]}
-                >
+              <Animated.View 
+                style={[
+                  styles.modalContainer, 
+                  { 
+                    backgroundColor: colors.background,
+                    transform: [{ translateY }],
+                    height: isFullScreen ? '100%' : '85%'
+                  }
+                ]}
+                {...panResponder.panHandlers}
+              >
                   {/* Header with drag handle */}
                   <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
                     <View style={styles.dragHandle} />
@@ -253,7 +259,6 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
                     <CommentSection postId={post.id} username={post.profiles?.username} />
                   </ScrollView>
                 </Animated.View>
-              </PanGestureHandler>
             </TouchableWithoutFeedback>
           </Animated.View>
         </TouchableWithoutFeedback>
