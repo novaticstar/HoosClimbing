@@ -13,6 +13,7 @@ import {
     RefreshControl,
     ScrollView,
     StyleSheet,
+    Text,
     TextInput,
     TouchableOpacity,
     View
@@ -37,6 +38,8 @@ interface FriendListItemProps {
   onAcceptFriend?: (userId: string) => Promise<boolean>;
   onRemoveFriend?: (userId: string) => Promise<boolean>;
   onCancelRequest?: (userId: string) => Promise<boolean>;
+  isSmallScreen?: boolean;
+  isMediumScreen?: boolean;
 }
 
 const FriendListItem: React.FC<FriendListItemProps> = ({
@@ -48,6 +51,8 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
   onAcceptFriend,
   onRemoveFriend,
   onCancelRequest,
+  isSmallScreen = false,
+  isMediumScreen = false,
 }) => {
   const { colors } = useTheme();
   const [showDropdown, setShowDropdown] = useState(false);
@@ -155,21 +160,49 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
         return (
           <View style={styles.actionButtons}>
             <TouchableOpacity
-              style={[styles.actionButton, styles.messageButton, { backgroundColor: colors.primary }]}
+              style={[
+                styles.actionButton, 
+                styles.messageButton, 
+                { 
+                  backgroundColor: colors.primary,
+                  paddingHorizontal: isSmallScreen ? spacing.xs : spacing.sm,
+                  paddingVertical: isSmallScreen ? 4 : spacing.xs,
+                }
+              ]}
               onPress={handleMessage}
             >
-              <Ionicons name="chatbubble" size={16} color={colors.onPrimary} />
-              <ThemedText variant="caption" color="onPrimary" style={styles.buttonText}>
+              <Ionicons name="chatbubble" size={isSmallScreen ? 14 : 16} color={colors.onPrimary} />
+              <Text style={[
+                styles.buttonText,
+                { 
+                  color: colors.onPrimary,
+                  fontSize: isSmallScreen ? 11 : 12,
+                }
+              ]}>
                 Message
-              </ThemedText>
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
+              style={[
+                styles.actionButton, 
+                styles.secondaryButton, 
+                { 
+                  borderColor: colors.border,
+                  paddingHorizontal: isSmallScreen ? spacing.xs : spacing.sm,
+                  paddingVertical: isSmallScreen ? 4 : spacing.xs,
+                }
+              ]}
               onPress={handleViewProfile}
             >
-              <ThemedText variant="caption" color="text" style={styles.buttonText}>
+              <Text style={[
+                styles.buttonText,
+                { 
+                  color: colors.text,
+                  fontSize: isSmallScreen ? 11 : 12,
+                }
+              ]}>
                 Profile
-              </ThemedText>
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.iconButton, { backgroundColor: colors.surfaceVariant }]}
@@ -183,21 +216,49 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
         return (
           <View style={styles.actionButtons}>
             <TouchableOpacity
-              style={[styles.actionButton, styles.acceptButton, { backgroundColor: colors.success }]}
+              style={[
+                styles.actionButton, 
+                styles.acceptButton, 
+                { 
+                  backgroundColor: colors.success,
+                  paddingHorizontal: isSmallScreen ? spacing.xs : spacing.sm,
+                  paddingVertical: isSmallScreen ? 4 : spacing.xs,
+                }
+              ]}
               onPress={handleAcceptFriend}
             >
-              <Ionicons name="checkmark" size={16} color={colors.onPrimary} />
-              <ThemedText variant="caption" color="onPrimary" style={styles.buttonText}>
+              <Ionicons name="checkmark" size={isSmallScreen ? 14 : 16} color={colors.onPrimary} />
+              <Text style={[
+                styles.buttonText,
+                { 
+                  color: colors.onPrimary,
+                  fontSize: isSmallScreen ? 11 : 12,
+                }
+              ]}>
                 Accept
-              </ThemedText>
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
+              style={[
+                styles.actionButton, 
+                styles.secondaryButton, 
+                { 
+                  borderColor: colors.border,
+                  paddingHorizontal: isSmallScreen ? spacing.xs : spacing.sm,
+                  paddingVertical: isSmallScreen ? 4 : spacing.xs,
+                }
+              ]}
               onPress={handleViewProfile}
             >
-              <ThemedText variant="caption" color="text" style={styles.buttonText}>
+              <Text style={[
+                styles.buttonText,
+                { 
+                  color: colors.text,
+                  fontSize: isSmallScreen ? 11 : 12,
+                }
+              ]}>
                 Profile
-              </ThemedText>
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.iconButton, { backgroundColor: colors.surfaceVariant }]}
@@ -233,21 +294,49 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
         return (
           <View style={styles.actionButtons}>
             <TouchableOpacity
-              style={[styles.actionButton, styles.cancelButton, { backgroundColor: colors.warning }]}
+              style={[
+                styles.actionButton, 
+                styles.cancelButton, 
+                { 
+                  backgroundColor: colors.warning,
+                  paddingHorizontal: isSmallScreen ? spacing.xs : spacing.sm,
+                  paddingVertical: isSmallScreen ? 4 : spacing.xs,
+                }
+              ]}
               onPress={handleCancelRequest}
             >
-              <Ionicons name="time" size={16} color={colors.onPrimary} />
-              <ThemedText variant="caption" color="onPrimary" style={styles.buttonText}>
+              <Ionicons name="time" size={isSmallScreen ? 14 : 16} color={colors.onPrimary} />
+              <Text style={[
+                styles.buttonText,
+                { 
+                  color: colors.onPrimary,
+                  fontSize: isSmallScreen ? 11 : 12,
+                }
+              ]}>
                 Cancel
-              </ThemedText>
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
+              style={[
+                styles.actionButton, 
+                styles.secondaryButton, 
+                { 
+                  borderColor: colors.border,
+                  paddingHorizontal: isSmallScreen ? spacing.xs : spacing.sm,
+                  paddingVertical: isSmallScreen ? 4 : spacing.xs,
+                }
+              ]}
               onPress={handleViewProfile}
             >
-              <ThemedText variant="caption" color="text" style={styles.buttonText}>
+              <Text style={[
+                styles.buttonText,
+                { 
+                  color: colors.text,
+                  fontSize: isSmallScreen ? 11 : 12,
+                }
+              ]}>
                 Profile
-              </ThemedText>
+              </Text>
             </TouchableOpacity>
           </View>
         );
@@ -255,21 +344,49 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
         return (
           <View style={styles.actionButtons}>
             <TouchableOpacity
-              style={[styles.actionButton, styles.addButton, { backgroundColor: colors.primary }]}
+              style={[
+                styles.actionButton, 
+                styles.addButton, 
+                { 
+                  backgroundColor: colors.primary,
+                  paddingHorizontal: isSmallScreen ? spacing.xs : spacing.sm,
+                  paddingVertical: isSmallScreen ? 4 : spacing.xs,
+                }
+              ]}
               onPress={handleAddFriend}
             >
-              <Ionicons name="person-add" size={16} color={colors.onPrimary} />
-              <ThemedText variant="caption" color="onPrimary" style={styles.buttonText}>
+              <Ionicons name="person-add" size={isSmallScreen ? 14 : 16} color={colors.onPrimary} />
+              <Text style={[
+                styles.buttonText,
+                { 
+                  color: colors.onPrimary,
+                  fontSize: isSmallScreen ? 10 : 12,
+                }
+              ]}>
                 Add Friend
-              </ThemedText>
+              </Text>  
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
+              style={[
+                styles.actionButton, 
+                styles.secondaryButton, 
+                { 
+                  borderColor: colors.border,
+                  paddingHorizontal: isSmallScreen ? spacing.xs : spacing.sm,
+                  paddingVertical: isSmallScreen ? 4 : spacing.xs,
+                }
+              ]}
               onPress={handleViewProfile}
             >
-              <ThemedText variant="caption" color="text" style={styles.buttonText}>
+              <Text style={[
+                styles.buttonText,
+                { 
+                  color: colors.text,
+                  fontSize: isSmallScreen ? 11 : 12,
+                }
+              ]}>
                 Profile
-              </ThemedText>
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.iconButton, { backgroundColor: colors.surfaceVariant }]}
@@ -317,23 +434,49 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
             )}
           </View>
           <View style={styles.userDetails}>
-            <ThemedText variant="h4" color="text">
+            <Text 
+              style={{
+                fontSize: isSmallScreen ? 14 : isMediumScreen ? 16 : 18,
+                fontWeight: '600',
+                color: colors.text,
+                flexShrink: 1,
+              }}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {getDisplayName()}
-            </ThemedText>
+            </Text>
             {user.full_name && user.full_name !== getDisplayName() && (
-              <ThemedText variant="body" color="textSecondary">
+              <Text 
+                style={{
+                  fontSize: isSmallScreen ? 12 : 14,
+                  color: colors.textSecondary,
+                  flexShrink: 1,
+                  marginTop: 2,
+                }}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {user.full_name}
-              </ThemedText>
+              </Text>
             )}
             {type === 'pending' && (
-              <ThemedText variant="caption" color="accent">
+              <Text style={{
+                fontSize: isSmallScreen ? 11 : 12,
+                color: colors.accent,
+                marginTop: 2,
+              }}>
                 Wants to be friends
-              </ThemedText>
+              </Text>
             )}
             {type === 'sent' && (
-              <ThemedText variant="caption" color="warning">
+              <Text style={{
+                fontSize: isSmallScreen ? 11 : 12,
+                color: colors.warning,
+                marginTop: 2,
+              }}>
                 Request sent
-              </ThemedText>
+              </Text>
             )}
           </View>
         </View>
@@ -454,6 +597,8 @@ export default function FriendsScreen() {
             type="friend"
             onViewProfile={() => handleViewProfile(friend)}
             onRemoveFriend={removeFriend}
+            isSmallScreen={isSmallScreen}
+            isMediumScreen={isMediumScreen}
           />
         ));
       case 'requests':
@@ -469,6 +614,8 @@ export default function FriendsScreen() {
               onViewProfile={() => handleViewProfile(request)}
               onAcceptFriend={acceptFriendRequest}
               onCancelRequest={cancelFriendRequest}
+              isSmallScreen={isSmallScreen}
+              isMediumScreen={isMediumScreen}
             />
           );
         });
@@ -481,6 +628,8 @@ export default function FriendsScreen() {
             type="suggestion"
             onViewProfile={() => handleViewProfile(suggestion)}
             onAddFriend={sendFriendRequest}
+            isSmallScreen={isSmallScreen}
+            isMediumScreen={isMediumScreen}
           />
         ));
       default:
@@ -740,14 +889,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.xs,
     alignItems: 'center',
+    flexShrink: 1,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
     borderRadius: 8,
     gap: 4,
+    minWidth: 0,
+    flexShrink: 1,
   },
   messageButton: {},
   addButton: {},
@@ -765,8 +915,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    fontSize: 12,
     fontWeight: '600',
+    flexShrink: 1,
   },
   loadingContainer: {
     flex: 1,
