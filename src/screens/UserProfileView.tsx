@@ -4,7 +4,7 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { User } from '../services/friendsService';
@@ -32,14 +32,16 @@ export default function UserProfileView({
   friendCount = 0
 }: UserProfileViewProps) {
   const { colors } = useTheme();
+  const [imageError, setImageError] = useState(false);
 
   const getDisplayName = () => {
-    return user.username || user.full_name || user.email?.split('@')[0] || 'Unknown User';
+    return user.username || user.full_name || (user.email ? user.email.split('@')[0] : 'Unknown User');
   };
 
   const getAvatarText = () => {
     const name = getDisplayName();
-    return name.charAt(0).toUpperCase();
+    const firstChar = name.charAt(0).toUpperCase();
+    return firstChar || '?';
   };
 
   const handleAddFriend = async () => {
@@ -182,12 +184,12 @@ export default function UserProfileView({
           {/* Profile Header */}
           <View style={styles.profileHeader}>
             <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-              {user.avatar_url && user.avatar_url.trim() && user.avatar_url.trim() !== '' ? (
+              {user.avatar_url && user.avatar_url.trim() && user.avatar_url.trim() !== '' && !imageError ? (
                 <Image
                   source={{ uri: user.avatar_url }}
                   style={styles.avatarImage}
                   onError={() => {
-                    // If image fails to load, the fallback will be handled by re-render
+                    setImageError(true);
                   }}
                 />
               ) : (

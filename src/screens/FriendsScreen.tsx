@@ -50,14 +50,16 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
 }) => {
   const { colors } = useTheme();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const getDisplayName = () => {
-    return user.username || user.full_name || user.email?.split('@')[0] || 'Unknown';
+    return user.username || user.full_name || (user.email ? user.email.split('@')[0] : 'Unknown');
   };
 
   const getAvatarText = () => {
     const name = getDisplayName();
-    return name.charAt(0).toUpperCase();
+    const firstChar = name.charAt(0).toUpperCase();
+    return firstChar || '?';
   };
 
   const handleMessage = () => {
@@ -301,12 +303,12 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
       <Card style={styles.friendItem}>
         <View style={styles.friendInfo}>
           <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-            {user.avatar_url && user.avatar_url.trim() && user.avatar_url.trim() !== '' ? (
+            {user.avatar_url && user.avatar_url.trim() && user.avatar_url.trim() !== '' && !imageError ? (
               <Image
                 source={{ uri: user.avatar_url }}
                 style={styles.avatarImage}
                 onError={() => {
-                  // If image fails to load, the fallback will be handled by re-render
+                  setImageError(true);
                 }}
               />
             ) : (
