@@ -2,17 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useRef, useState } from 'react';
-import { 
-  Animated, 
-  Dimensions, 
-  Image, 
-  Modal, 
+import {
+  Animated,
+  Dimensions,
+  Image,
+  Modal,
   PanResponder,
   ScrollView,
-  StyleSheet, 
-  TouchableOpacity, 
+  StyleSheet,
+  TouchableOpacity,
   TouchableWithoutFeedback,
-  View 
+  View
 } from 'react-native';
 import { FeedStackParamList } from '../navigation/FeedStack';
 import { spacing, ThemedText, useTheme } from '../theme/ui';

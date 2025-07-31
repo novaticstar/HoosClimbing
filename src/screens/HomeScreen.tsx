@@ -12,6 +12,7 @@ import { Dimensions, Image, RefreshControl, ScrollView, StyleSheet, TouchableOpa
 import { Menu } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FriendCard } from '../components/FriendCard';
+import { Avatar } from '../components/Avatar';
 import { useAuth } from '../context/AuthContext';
 import { useAppStateSync } from '../hooks/useAppStateSync';
 import { useRealtimeFriends as useFriends } from '../hooks/useRealtimeFriends';
@@ -178,18 +179,11 @@ export default function HomeScreen() {
                   <View style={styles.feedContent}>
                     <View style={styles.feedInfo}>
                       <View style={styles.avatarRow}>
-                        {topPost.profiles?.avatar_url ? (
-                          <Image
-                            source={{ uri: topPost.profiles.avatar_url }}
-                            style={styles.avatar}
-                          />
-                        ) : (
-                          <View style={[styles.avatar, { backgroundColor: colors.surfaceVariant }]}>
-                            <ThemedText variant="caption" color="textSecondary">
-                              {topPost.profiles?.username?.charAt(0).toUpperCase() ?? '?'}
-                            </ThemedText>
-                          </View>
-                        )}
+                        <Avatar
+                          uri={topPost.profiles?.avatar_url}
+                          name={topPost.profiles?.username}
+                          size={50}
+                        />
                       {topPost.description && (
                         <ThemedText variant="body" color="textSecondary">
                           {topPost.description}
@@ -351,14 +345,6 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       marginBottom: spacing.md,
       gap: spacing.sm,
-    },
-    avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      justifyContent: 'center',
-      alignItems: 'center',
-      overflow: 'hidden',
     },
   playButton: {
     width: 40,
