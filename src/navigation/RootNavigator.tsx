@@ -16,8 +16,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import * as Linking from 'expo-linking';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import EventDetailsScreen from '../screens/EventDetailsScreen';
-import EventsScreen from '../screens/EventsScreen';
 import { useAuth } from '../context/AuthContext';
 import { Container, spacing, ThemedText, useTheme } from '../theme/ui';
 import AppTabs from './AppTabs';

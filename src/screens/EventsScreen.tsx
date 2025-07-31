@@ -2,13 +2,13 @@
  * Events Overview Screen
  */
 
-import React from 'react';
-import { ScrollView, StyleSheet, View, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { spacing, Container, ThemedText, Card, useTheme } from '../theme/ui';
-import type { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import React from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { HomeStackParamList } from '../navigation/HomeStack';
+import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
 
 type EventsScreenNavigationProp = StackNavigationProp<HomeStackParamList, 'EventsList'>;
 

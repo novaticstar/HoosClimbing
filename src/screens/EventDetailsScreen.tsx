@@ -2,15 +2,15 @@
  * Event Details Screen
  */
 
-import React, { useState } from 'react';
-import { ScrollView, View, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ThemedText, spacing, Container, Card, useTheme } from '../theme/ui';
 import { Ionicons } from '@expo/vector-icons';
-import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RouteProp } from '@react-navigation/native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { HomeStackParamList } from '../navigation/HomeStack';
+import { Container, ThemedText, spacing, useTheme } from '../theme/ui';
 
 type EventDetailsScreenNavigationProp = StackNavigationProp<HomeStackParamList, 'EventDetails'>;
 type EventDetailsScreenRouteProp = RouteProp<HomeStackParamList, 'EventDetails'>;
