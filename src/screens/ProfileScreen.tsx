@@ -1,13 +1,29 @@
-import * as ImagePicker from 'expo-image-picker';
-import React, { useEffect, useState } from 'react';
-import { Button, Image, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React from 'react';
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Container, spacing, ThemedText, useTheme } from '../theme/ui';
 import { useAuth } from '../context/AuthContext';
 import { useFriends } from '../hooks/useFriends';
+import  { useEffect, useState } from 'react';
+import { Modal, TextInput, Button, Text } from 'react-native'; // Add these
+import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../lib/supabase';
-import { Container, spacing, ThemedText, useTheme } from '../theme/ui';
+import * as FileSystem from 'expo-file-system';
+import { Platform } from 'react-native';
+import * as mime from 'mime';
+
+import Constants from 'expo-constants';
+console.log('expoConfig.extra:', Constants.expoConfig?.extra);
 
 export default function ProfileScreen() {
+  const extra = Constants.expoConfig?.extra;
+
+if (!extra?.supabaseAnonKey || !extra?.supabaseUrl) {
+ 
+  throw new Error('Missing Supabase keys in expo config!');
+}
+  const supabaseAnonKey = extra.supabaseAnonKey;
+  const supabaseUrl = extra.supabaseUrl;
   const { colors } = useTheme();
   const {friends } = useFriends();
   const { updateProfile } = useAuth();
@@ -271,37 +287,43 @@ function getMimeType(uri: string) {
               }
             }
               } else {
-                const fileExt = imageUri.split('.').pop() || 'jpg';
-                const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-                const filePath = fileName;
+                        // Supabase upload via fetch
+            const file = {
+              uri: imageUri,
+              name: fileName,
+              type: getMimeType(imageUri) || 'image/jpeg',
+            };
+            const formData = new FormData();
+            formData.append('file', file as any);
+            const sessionResult = await supabase.auth.getSession();
+            const accessToken = sessionResult.data?.session?.access_token;
+            console.log("Upload info", {
+              filePath,
+              projectUrl: `https://lszaovkgknpurhsjksqu.supabase.co`,
+              accessToken: accessToken?.slice(0, 10) + '...',
+            });
+            const res = await fetch(`${supabaseUrl}storage/v1/object/profile-pictures/${filePath}`, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                apikey: supabaseAnonKey,
+              },
+              body: formData,
+            });
 
-                // Read file as blob for React Native
-                const response = await fetch(imageUri);
-                const blob = await response.blob();
+            if (!res.ok) {
+              const errorText = await res.text();
+              console.error('Upload failed:', errorText);
+              return;
+            }
 
-                const { data, error: uploadError } = await supabase.storage
-                  .from('profile-pictures')
-                  .upload(filePath, blob, {
-                    contentType: getMimeType(imageUri) || 'image/jpeg',
-                    upsert: true,
-                  });
+            const publicUrl = supabase.storage.from('profile-pictures').getPublicUrl(filePath).data.publicUrl;
 
-                if (uploadError) {
-                  console.error('Upload failed:', uploadError);
-                  return;
-                }
-
-                const { data: urlData } = supabase.storage
-                  .from('profile-pictures')
-                  .getPublicUrl(filePath);
-
-                const publicUrl = urlData?.publicUrl;
-
-                // Update user profile
-                await updateProfile({ avatar_url: publicUrl });
-                await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
-                setProfilePicture(publicUrl);
-                console.log('Profile picture updated successfully:', publicUrl);
+            // Update user profile
+            await updateProfile({ avatar_url: publicUrl });
+            await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
+            setProfilePicture(publicUrl);
+            console.log('Profile picture updated successfully:', publicUrl);
 
             }      
           }
