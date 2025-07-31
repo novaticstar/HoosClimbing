@@ -1,8 +1,4 @@
 /**
- * Root Navigator
- * Handles authentication state and navigation between auth and app flows
- */
-
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as Linking from 'expo-linking';
@@ -11,12 +7,24 @@ import { StyleSheet, View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { Container, spacing, ThemedText, useTheme } from '../theme/ui';
 import AppTabs from './AppTabs';
+import AuthStack from './AuthStack';igator
+ * Handles authentication state and navigation between auth and app flows
+ */
+
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import * as Linking from 'expo-linking';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import EventDetailsScreen from '../screens/EventDetailsScreen';
+import EventsScreen from '../screens/EventsScreen';
+import { useAuth } from '../context/AuthContext';
+import { Container, spacing, ThemedText, useTheme } from '../theme/ui';
+import AppTabs from './AppTabs';
 import AuthStack from './AuthStack';
-import EventsStack from './EventsStack';
 
 export type RootStackParamList = {
   AppTabs: undefined;
-  EventsTest: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -86,13 +94,6 @@ export default function RootNavigator() {
       {session ? (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="AppTabs" component={AppTabs} />
-          <Stack.Screen 
-            name="EventsTest" 
-            component={EventsStack}
-            options={{
-              headerShown: false
-            }}
-          />
         </Stack.Navigator>
       ) : (
         <AuthStack />

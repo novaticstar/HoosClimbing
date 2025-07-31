@@ -10,12 +10,11 @@ import { IconSymbol } from '../components/ui/IconSymbol';
 import TabBarBackground from '../components/ui/TabBarBackground';
 import FeedScreen from '../screens/FeedScreen';
 import FriendsScreen from '../screens/FriendsScreen';
-import HomeScreen from '../screens/HomeScreen';
-//import EventsScreen from '../screens/EventsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import UploadScreen from '../screens/UploadScreen';
 import { uvaColors } from '../theme/colors';
 import { useTheme } from '../theme/ui';
+import HomeStack from './HomeStack';
 
 export type AppTabsParamList = {
   Home: undefined;
@@ -54,7 +53,7 @@ export default function AppTabs() {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeStack}
         options={{
           title: 'Home',
           tabBarIcon: ({ color }) => (

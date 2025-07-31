@@ -10,10 +10,10 @@ import { Ionicons } from '@expo/vector-icons';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RouteProp } from '@react-navigation/native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import type { EventsStackParamList } from '../navigation/EventsStack';
+import type { HomeStackParamList } from '../navigation/HomeStack';
 
-type EventDetailsScreenNavigationProp = StackNavigationProp<EventsStackParamList, 'EventDetails'>;
-type EventDetailsScreenRouteProp = RouteProp<EventsStackParamList, 'EventDetails'>;
+type EventDetailsScreenNavigationProp = StackNavigationProp<HomeStackParamList, 'EventDetails'>;
+type EventDetailsScreenRouteProp = RouteProp<HomeStackParamList, 'EventDetails'>;
 
 // Placeholder avatar generator
 const getInitials = (name: string) => name.split(' ').map(w => w[0]).join('').toUpperCase();

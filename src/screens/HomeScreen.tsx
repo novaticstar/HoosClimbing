@@ -18,7 +18,7 @@ import { useRealtimeFriends as useFriends } from '../hooks/useRealtimeFriends';
 import { useRealtimeNotifications } from '../hooks/useRealtimeNotifications';
 import { useTopPost } from '../hooks/useTopPost';
 import type { AppTabsParamList } from '../navigation/AppTabs';
-import type { RootStackParamList } from '../navigation/RootNavigator';
+import type { HomeStackParamList } from '../navigation/HomeStack';
 import { User } from '../services/friendsService';
 import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
 export default function HomeScreen() {
@@ -38,8 +38,8 @@ export default function HomeScreen() {
   const { unreadCount } = useRealtimeNotifications();
   const navigation = useNavigation<
     CompositeNavigationProp<
-      BottomTabNavigationProp<AppTabsParamList>,
-      StackNavigationProp<RootStackParamList>
+      StackNavigationProp<HomeStackParamList, 'HomeMain'>,
+      BottomTabNavigationProp<AppTabsParamList>
     >
   >();
   const [menuVisible, setMenuVisible] = useState(false);
@@ -214,13 +214,13 @@ export default function HomeScreen() {
           <View style={styles.section}>
               <TouchableOpacity 
               style={styles.sectionHeader}
-              onPress={() => navigation.navigate('EventsTest')}
+              onPress={() => navigation.navigate('EventsList')}
               activeOpacity={0.7}
             >
                 <ThemedText variant="h3" color="text">Events →</ThemedText>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => navigation.navigate('EventsTest')}>
+              <TouchableOpacity onPress={() => navigation.navigate('EventsList')}>
                 <Card style={styles.feedCard}>
                   <View style={[styles.feedImage, { backgroundColor: colors.surfaceVariant }]}>
                     <ThemedText variant="h1" color="textSecondary">🏔️</ThemedText>

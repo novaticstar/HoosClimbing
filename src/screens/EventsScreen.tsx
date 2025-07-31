@@ -8,9 +8,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { spacing, Container, ThemedText, Card, useTheme } from '../theme/ui';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
-import type { EventsStackParamList } from '../navigation/EventsStack';
+import type { HomeStackParamList } from '../navigation/HomeStack';
 
-type EventsScreenNavigationProp = StackNavigationProp<EventsStackParamList, 'EventsList'>;
+type EventsScreenNavigationProp = StackNavigationProp<HomeStackParamList, 'EventsList'>;
 
 export default function EventsScreen() {
   const { colors } = useTheme();
