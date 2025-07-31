@@ -1,20 +1,15 @@
 /**
  * Feed Stack Navigator
- * Handles navigation within the Feed tab including post comments and user profiles
+ * Handles navigation within the Feed tab including user profiles
  */
 
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import FeedScreen from '../screens/FeedScreen';
-import PostCommentsScreen from '../screens/PostCommentsScreen';
 import UserProfileScreen from '../screens/UserProfileScreen';
 
 export type FeedStackParamList = {
   FeedMain: undefined;
-  PostComments: {
-    postId: string;
-    username?: string;
-  };
   UserProfile: {
     userId: string;
     username?: string;
@@ -27,7 +22,6 @@ export default function FeedStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="FeedMain" component={FeedScreen} />
-      <Stack.Screen name="PostComments" component={PostCommentsScreen} />
       <Stack.Screen name="UserProfile" component={UserProfileScreen} />
     </Stack.Navigator>
   );

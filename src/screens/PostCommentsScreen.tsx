@@ -1,20 +1,22 @@
 /**
- * Post Comments Screen
- * Dedicated screen for viewing all comments on a post
+ * Post Comments Screen - Modal Style
+ * Popup-style screen for viewing all comments on a post
  */
 
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Modal, StyleSheet, TouchableOpacity, View, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CommentSection } from '../components/CommentSection';
-import { Container, spacing, ThemedText, useTheme } from '../theme/ui';
+import { spacing, ThemedText, useTheme } from '../theme/ui';
 
 type PostCommentsScreenRouteProp = {
   postId: string;
   username?: string;
 };
+
+const screenHeight = Dimensions.get('window').height;
 
 export default function PostCommentsScreen() {
   const { colors } = useTheme();
@@ -23,38 +25,69 @@ export default function PostCommentsScreen() {
   const { postId } = route.params as PostCommentsScreenRouteProp;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <ThemedText variant="h3" color="text" style={styles.headerTitle}>
-          Comments
-        </ThemedText>
-        <View style={styles.headerSpacer} />
-      </View>
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={true}
+      onRequestClose={() => navigation.goBack()}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+          {/* Header */}
+          <View style={[styles.header, { borderBottomColor: colors.border }]}>
+            <View style={styles.dragHandle} />
+            <View style={styles.headerContent}>
+              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+              <ThemedText variant="h3" color="text" style={styles.headerTitle}>
+                Comments
+              </ThemedText>
+              <View style={styles.headerSpacer} />
+            </View>
+          </View>
 
-      {/* Comments */}
-      <Container style={styles.content}>
-        <CommentSection postId={postId} collapsed={false} />
-      </Container>
-    </SafeAreaView>
+          {/* Comments */}
+          <View style={styles.content}>
+            <CommentSection postId={postId} collapsed={false} />
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  modalOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    height: '85%',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   header: {
+    paddingTop: 12,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    alignItems: 'center',
+  },
+  dragHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#CCCCCC',
+    borderRadius: 2,
+    marginBottom: 12,
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
+    width: '100%',
   },
-  backButton: {
+  closeButton: {
     padding: spacing.xs,
   },
   headerTitle: {
@@ -63,7 +96,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   headerSpacer: {
-    width: 40, // Balance the back button
+    width: 32,
   },
   content: {
     flex: 1,

@@ -18,11 +18,10 @@ type CommentNavigationProp = StackNavigationProp<FeedStackParamList>;
 
 type Props = {
   postId: string;
-  collapsed?: boolean;
   username?: string;
 };
 
-export function CommentSection({ postId, collapsed = false, username }: Props) {
+export function CommentSection({ postId, username }: Props) {
   const { colors } = useTheme();
   const { user } = useAuth();
   const navigation = useNavigation<CommentNavigationProp>();
@@ -38,9 +37,7 @@ export function CommentSection({ postId, collapsed = false, username }: Props) {
 
   const fetchComments = async () => {
     setLoading(true);
-    const data = collapsed
-      ? await CommentService.getRecentComments(postId, user?.id)
-      : await CommentService.getCommentsForPost(postId, user?.id);
+    const data = await CommentService.getCommentsForPost(postId, user?.id);
 
     // Sort comments to show most recent at bottom (like Instagram)
     const sortedData = data.sort((a, b) => 
@@ -118,7 +115,7 @@ export function CommentSection({ postId, collapsed = false, username }: Props) {
 
   useEffect(() => {
     fetchComments();
-  }, [collapsed]);
+  }, []);
 
   const renderComment = (comment: Comment, isReply = false) => {
     const isOwn = user && comment.user_id === user.id;
@@ -189,16 +186,8 @@ export function CommentSection({ postId, collapsed = false, username }: Props) {
 
                   {!isReply && (
                     <TouchableOpacity onPress={() => {
-                      if (collapsed) {
-                        // Navigate to comments screen when in collapsed mode
-                        navigation.navigate('PostComments', {
-                          postId,
-                          username
-                        });
-                      } else {
-                        // Show reply input when in full mode
-                        setReplyingToId(comment.id);
-                      }
+                      // Show reply input when in full mode
+                      setReplyingToId(comment.id);
                     }}>
                       <ThemedText variant="caption" color="textSecondary" style={styles.actionText}>
                         Reply
@@ -305,19 +294,13 @@ export function CommentSection({ postId, collapsed = false, username }: Props) {
         </View>
       ) : (
         <>
-          {collapsed ? (
-            // Show only the most recent comment in collapsed mode
-            comments.slice(-1).map(comment => renderComment(comment))
-          ) : (
-            // Show all comments in expanded mode
-            comments.map(comment => renderComment(comment))
-          )}
+          {/* Show all comments in expanded mode */}
+          {comments.map(comment => renderComment(comment))}
         </>
       )}
 
       {/* Add Comment Input */}
-      {!collapsed && (
-        <View style={styles.addCommentContainer}>
+      <View style={styles.addCommentContainer}>
           <TextInput
             value={text}
             onChangeText={setText}
@@ -336,7 +319,6 @@ export function CommentSection({ postId, collapsed = false, username }: Props) {
             </ThemedText>
           </TouchableOpacity>
         </View>
-      )}
     </View>
   );
 }
@@ -344,6 +326,7 @@ export function CommentSection({ postId, collapsed = false, username }: Props) {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
   },
   loadingContainer: {
     padding: spacing.sm,
@@ -374,10 +357,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   commentBubble: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 16,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
+    alignSelf: 'flex-start',
+    maxWidth: '85%',
   },
   commentUsername: {
     fontWeight: '600',
