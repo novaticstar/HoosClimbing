@@ -8,12 +8,12 @@ import { Platform } from 'react-native';
 import { HapticTab } from '../components/HapticTab';
 import { IconSymbol } from '../components/ui/IconSymbol';
 import TabBarBackground from '../components/ui/TabBarBackground';
-import FeedScreen from '../screens/FeedScreen';
 import FriendsScreen from '../screens/FriendsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import UploadScreen from '../screens/UploadScreen';
 import { uvaColors } from '../theme/colors';
 import { useTheme } from '../theme/ui';
+import FeedStack from './FeedStack';
 import HomeStack from './HomeStack';
 
 export type AppTabsParamList = {
@@ -63,7 +63,7 @@ export default function AppTabs() {
       />
       <Tab.Screen
         name="Feed"
-        component={FeedScreen}
+        component={FeedStack}
         options={{
           title: 'Feed',
           tabBarIcon: ({ color }) => (

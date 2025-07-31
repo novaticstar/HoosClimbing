@@ -1,16 +1,11 @@
-import React from 'react';
-import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import React, { useEffect, useState } from 'react';
+import { Button, Image, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Container, spacing, ThemedText, useTheme } from '../theme/ui';
 import { useAuth } from '../context/AuthContext';
 import { useFriends } from '../hooks/useFriends';
-import  { useEffect, useState } from 'react';
-import { Modal, TextInput, Button, Text } from 'react-native'; // Add these
-import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../lib/supabase';
-import * as FileSystem from 'expo-file-system';
-import { Platform } from 'react-native';
-import * as mime from 'mime';
+import { Container, spacing, ThemedText, useTheme } from '../theme/ui';
 
 import Constants from 'expo-constants';
 console.log('expoConfig.extra:', Constants.expoConfig?.extra);
@@ -300,6 +295,7 @@ function getMimeType(uri: string) {
             console.log("Upload info", {
               filePath,
               projectUrl: `https://lszaovkgknpurhsjksqu.supabase.co`,
+              imageUri,
               accessToken: accessToken?.slice(0, 10) + '...',
             });
             const res = await fetch(`${supabaseUrl}storage/v1/object/profile-pictures/${filePath}`, {

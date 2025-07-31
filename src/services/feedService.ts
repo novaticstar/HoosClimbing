@@ -9,6 +9,7 @@ export interface FeedItem {
   id: string;
   user_id: string;
   description: string;
+  image_url?: string | null;
   likes: number;
   created_at: string;
   updated_at: string;
@@ -30,6 +31,7 @@ export class FeedService {
           id,
           user_id,
           description,
+          image_url,
           likes,
           created_at,
           updated_at,
@@ -91,6 +93,7 @@ export class FeedService {
           id,
           user_id,
           description,
+          image_url,
           likes,
           created_at,
           updated_at,
@@ -110,10 +113,10 @@ export class FeedService {
       return data
       ? {
           ...data,
-          profiles: {
-            ...data.profiles,
-            avatar_url: data.profiles?.avatar_url ?? null,
-          },
+          profiles: data.profiles ? {
+            username: data.profiles.username,
+            avatar_url: data.profiles.avatar_url ?? null,
+          } : null,
         }
       : null;
     } catch (err) {
