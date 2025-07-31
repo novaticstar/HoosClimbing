@@ -36,6 +36,7 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
   // Animation refs
   const translateY = useRef(new Animated.Value(screenWidth)).current;
   const backgroundOpacity = useRef(new Animated.Value(0)).current;
+  const panStartValue = useRef(0);
   
   const openModal = () => {
     setShowCommentsModal(true);
@@ -47,20 +48,22 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
       useNativeDriver: false,
     }).start();
     
-    // Animate modal slide up
-    Animated.timing(translateY, {
+    // Animate modal slide up with spring
+    Animated.spring(translateY, {
       toValue: 0,
-      duration: 300,
       useNativeDriver: true,
+      tension: 100,
+      friction: 8,
     }).start();
   };
   
   const closeModal = () => {
-    // Animate modal slide down
-    Animated.timing(translateY, {
+    // Animate modal slide down smoothly with spring
+    Animated.spring(translateY, {
       toValue: screenWidth,
-      duration: 300,
       useNativeDriver: true,
+      tension: 80,
+      friction: 8,
     }).start();
     
     // Animate background fade out
@@ -77,23 +80,56 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        return Math.abs(gestureState.dy) > 20;
+        // Only respond to vertical movements and ignore small movements
+        return Math.abs(gestureState.dy) > 10 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
+      },
+      onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
+        return Math.abs(gestureState.dy) > 10 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
       },
       onPanResponderGrant: () => {
-        // Gesture started
+        // Store the starting value
+        panStartValue.current = 0;
       },
       onPanResponderMove: (evt, gestureState) => {
-        // Handle the gesture movement if needed
+        // Follow user's finger smoothly with some resistance
+        const { dy } = gestureState;
+        
+        if (dy > 0) {
+          // Moving down - allow for closing with some resistance
+          const resistedValue = dy * 0.7; // Add resistance
+          translateY.setValue(Math.max(0, resistedValue));
+        } else if (dy < 0 && !isFullScreen) {
+          // Moving up - allow for expanding to full screen with resistance
+          const resistedValue = dy * 0.5; // More resistance for upward movement
+          translateY.setValue(Math.max(-80, resistedValue));
+        }
       },
       onPanResponderRelease: (evt, gestureState) => {
         const { dy, vy } = gestureState;
         
-        if (dy < -100 && vy < -0.5) {
-          // Swipe up to full screen
-          setIsFullScreen(true);
-        } else if (dy > 100 || vy > 0.5) {
-          // Swipe down to close
+        // More sensitive thresholds for better UX
+        if (dy > 120 || vy > 0.6) {
+          // Close the modal - swipe down far enough or fast enough
           closeModal();
+        } else if (dy < -80 || vy < -0.6) {
+          // Expand to full screen - swipe up far enough or fast enough
+          if (!isFullScreen) {
+            setIsFullScreen(true);
+            Animated.spring(translateY, {
+              toValue: 0,
+              useNativeDriver: true,
+              tension: 100,
+              friction: 8,
+            }).start();
+          }
+        } else {
+          // Snap back to original position with spring animation
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            tension: 100,
+            friction: 8,
+          }).start();
         }
       },
     })
@@ -234,10 +270,12 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
                     height: isFullScreen ? '100%' : '85%'
                   }
                 ]}
-                {...panResponder.panHandlers}
               >
-                  {/* Header with drag handle */}
-                  <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+                  {/* Header with drag handle - this area handles gestures */}
+                  <View 
+                    style={[styles.modalHeader, { borderBottomColor: colors.border }]}
+                    {...panResponder.panHandlers}
+                  >
                     <View style={styles.dragHandle} />
                     <View style={styles.headerContent}>
                       <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
@@ -250,11 +288,12 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
                     </View>
                   </View>
 
-                  {/* Scrollable Comments */}
+                  {/* Scrollable Comments - this area scrolls independently */}
                   <ScrollView 
                     style={styles.modalContent}
                     showsVerticalScrollIndicator={false}
                     bounces={true}
+                    keyboardShouldPersistTaps="handled"
                   >
                     <CommentSection postId={post.id} username={post.profiles?.username} />
                   </ScrollView>
@@ -354,6 +393,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
     borderBottomWidth: 1,
     alignItems: 'center',
+    minHeight: 60, // Ensure adequate touch area for gestures
   },
   dragHandle: {
     width: 40,

@@ -133,9 +133,9 @@ export function CommentSection({ postId, username }: Props) {
               style={styles.commentAvatar}
             />
           ) : (
-            <View style={[styles.commentAvatar, { backgroundColor: colors.surfaceVariant }]}>
-              <ThemedText variant="caption" color="textSecondary">
-                {comment.profiles?.username?.charAt(0).toUpperCase() ?? '?'}
+            <View style={[styles.commentAvatar, styles.avatarFallback]}>
+              <ThemedText variant="caption" color="text" style={styles.avatarText}>
+                {comment.profiles?.username?.charAt(0).toUpperCase() ?? 'U'}
               </ThemedText>
             </View>
           )}
@@ -352,6 +352,14 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  avatarFallback: {
+    backgroundColor: '#4A90E2',
+  },
+  avatarText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '600',
   },
   commentContent: {
     flex: 1,
