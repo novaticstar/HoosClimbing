@@ -182,7 +182,7 @@ export default function UserProfileView({
           {/* Profile Header */}
           <View style={styles.profileHeader}>
             <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-              {user.avatar_url && user.avatar_url.trim() !== '' ? (
+              {user.avatar_url && user.avatar_url.trim() && user.avatar_url.trim() !== '' ? (
                 <Image
                   source={{ uri: user.avatar_url }}
                   style={styles.avatarImage}

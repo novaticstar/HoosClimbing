@@ -301,7 +301,7 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
       <Card style={styles.friendItem}>
         <View style={styles.friendInfo}>
           <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-            {user.avatar_url && user.avatar_url.trim() !== '' ? (
+            {user.avatar_url && user.avatar_url.trim() && user.avatar_url.trim() !== '' ? (
               <Image
                 source={{ uri: user.avatar_url }}
                 style={styles.avatarImage}

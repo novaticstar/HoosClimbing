@@ -28,6 +28,7 @@ export function FriendCard({
 }: FriendCardProps) {
   const { colors } = useTheme();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const handleAddFriend = async () => {
     if (!onAddFriend) return;
@@ -112,7 +113,7 @@ export function FriendCard({
   };
 
   const getDisplayName = () => {
-    return user.username || user.full_name || user.email.split('@')[0];
+    return user.username || user.full_name || (user.email ? user.email.split('@')[0] : 'Unknown');
   };
 
   const handleSuggestionOptions = () => {
@@ -153,7 +154,8 @@ export function FriendCard({
 
   const getAvatarText = () => {
     const name = getDisplayName();
-    return name.charAt(0).toUpperCase();
+    const firstChar = name.charAt(0).toUpperCase();
+    return firstChar || '?';
   };
 
   const renderActionButton = () => {
@@ -209,21 +211,22 @@ export function FriendCard({
 
   return (
     <View style={[styles.container, { position: 'relative' }]}>
-      <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-        {user.avatar_url && user.avatar_url.trim() !== '' ? (
-          <Image
-            source={{ uri: user.avatar_url }}
-            style={styles.avatarImage}
-            onError={() => {
-              // If image fails to load, we could set a flag to show fallback
-              // For now, the fallback will be handled by the condition check
-            }}
-          />
-        ) : (
-          <ThemedText variant="h4" color="onPrimary">
-            {getAvatarText()}
-          </ThemedText>
-        )}
+      <View style={[styles.avatarContainer, { position: 'relative' }]}>
+        <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+          {user.avatar_url && user.avatar_url.trim() && user.avatar_url.trim() !== '' && !imageError ? (
+            <Image
+              source={{ uri: user.avatar_url }}
+              style={styles.avatarImage}
+              onError={() => {
+                setImageError(true);
+              }}
+            />
+          ) : (
+            <ThemedText variant="h4" color="onPrimary">
+              {getAvatarText()}
+            </ThemedText>
+          )}
+        </View>
         {renderActionButton()}
       </View>
       <ThemedText variant="caption" color="text" style={styles.name}>
@@ -272,14 +275,16 @@ const styles = StyleSheet.create({
     marginRight: spacing.lg,
     width: 70,
   },
+  avatarContainer: {
+    position: 'relative',
+    marginBottom: spacing.sm,
+  },
   avatar: {
     width: 60,
     height: 60,
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.sm,
-    position: 'relative',
     overflow: 'hidden',
   },
   avatarImage: {
@@ -305,7 +310,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: 'white',
-    zIndex: 10,
+    zIndex: 100,
+    elevation: 5,
   },
   actionButtons: {
     flexDirection: 'row',
@@ -313,7 +319,8 @@ const styles = StyleSheet.create({
     bottom: -4,
     right: -4,
     gap: 4,
-    zIndex: 10,
+    zIndex: 100,
+    elevation: 5,
   },
   name: {
     textAlign: 'center',
