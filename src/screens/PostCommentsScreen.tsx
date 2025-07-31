@@ -6,8 +6,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
-import { Modal, StyleSheet, TouchableOpacity, View, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Dimensions, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { CommentSection } from '../components/CommentSection';
 import { spacing, ThemedText, useTheme } from '../theme/ui';
 

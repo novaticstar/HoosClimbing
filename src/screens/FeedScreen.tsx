@@ -3,11 +3,11 @@
  */
 
 import React from 'react';
-import { FlatList, StyleSheet, View, ActivityIndicator, RefreshControl } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { spacing, ThemedText, useTheme } from '../theme/ui';
-import { useFeed } from '../hooks/useFeed';
 import { FeedCard } from '../components/FeedCard';
+import { useFeed } from '../hooks/useFeed';
+import { spacing, ThemedText, useTheme } from '../theme/ui';
 
 export default function FeedScreen() {
   const { colors } = useTheme();
