@@ -4,21 +4,28 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { formatDistanceToNow } from 'date-fns';
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { FeedStackParamList } from '../navigation/FeedStack';
 import { Comment, CommentService } from '../services/commentsService';
 import { spacing, ThemedText, useTheme } from '../theme/ui';
+
+type CommentNavigationProp = StackNavigationProp<FeedStackParamList>;
 
 type Props = {
   postId: string;
   collapsed?: boolean;
+  username?: string;
 };
 
-export function CommentSection({ postId, collapsed = false }: Props) {
+export function CommentSection({ postId, collapsed = false, username }: Props) {
   const { colors } = useTheme();
   const { user } = useAuth();
+  const navigation = useNavigation<CommentNavigationProp>();
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [text, setText] = useState('');
@@ -181,7 +188,18 @@ export function CommentSection({ postId, collapsed = false }: Props) {
                   )}
 
                   {!isReply && (
-                    <TouchableOpacity onPress={() => setReplyingToId(comment.id)}>
+                    <TouchableOpacity onPress={() => {
+                      if (collapsed) {
+                        // Navigate to comments screen when in collapsed mode
+                        navigation.navigate('PostComments', {
+                          postId,
+                          username
+                        });
+                      } else {
+                        // Show reply input when in full mode
+                        setReplyingToId(comment.id);
+                      }
+                    }}>
                       <ThemedText variant="caption" color="textSecondary" style={styles.actionText}>
                         Reply
                       </ThemedText>
@@ -416,6 +434,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     fontSize: 14,
     maxHeight: 100,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   editActions: {
     flexDirection: 'row',
@@ -433,6 +453,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     fontSize: 14,
     maxHeight: 80,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   replyActions: {
     flexDirection: 'row',
@@ -454,6 +476,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     maxHeight: 80,
     marginRight: spacing.sm,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   postButton: {
     fontWeight: '600',

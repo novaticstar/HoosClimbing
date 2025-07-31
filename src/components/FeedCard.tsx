@@ -19,7 +19,6 @@ const screenWidth = Dimensions.get('window').width;
 export const FeedCard = ({ post, onLike }: FeedCardProps) => {
   const { colors } = useTheme();
   const navigation = useNavigation<FeedCardNavigationProp>();
-  const [showComments, setShowComments] = useState(false);
 
   // Stub images for demo purposes
   const stubImages = [
@@ -37,6 +36,12 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
       <View style={styles.postHeader}>
         <TouchableOpacity 
           style={styles.avatarRow}
+          onPress={() => {
+            navigation.navigate('UserProfile', {
+              userId: post.user_id,
+              username: post.profiles?.username
+            });
+          }}
         >
           {post.profiles?.avatar_url ? (
             <Image
@@ -127,7 +132,7 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
       )}
 
       {/* Comments Section - Show only most recent comment */}
-      <CommentSection postId={post.id} collapsed={true} />
+      <CommentSection postId={post.id} collapsed={true} username={post.profiles?.username} />
     </View>
   );
 };
@@ -142,29 +147,33 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs,
+    minHeight: 56, // Fixed height for consistency
   },
   avatarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    flex: 1, // Take available space
+    marginRight: spacing.sm,
   },
   avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
   },
   userInfo: {
     flex: 1,
+    marginLeft: spacing.sm,
   },
   moreButton: {
     width: 32,
     height: 32,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 16,
   },
   postImage: {
     width: screenWidth,

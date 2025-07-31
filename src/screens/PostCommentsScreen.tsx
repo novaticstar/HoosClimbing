@@ -20,7 +20,7 @@ export default function PostCommentsScreen() {
   const { colors } = useTheme();
   const navigation = useNavigation();
   const route = useRoute();
-  const { postId, username } = route.params as PostCommentsScreenRouteProp;
+  const { postId } = route.params as PostCommentsScreenRouteProp;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
