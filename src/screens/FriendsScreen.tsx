@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
     Alert,
+    Dimensions,
     Image,
     Modal,
     RefreshControl,
@@ -50,16 +51,14 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
 }) => {
   const { colors } = useTheme();
   const [showDropdown, setShowDropdown] = useState(false);
-  const [imageError, setImageError] = useState(false);
 
   const getDisplayName = () => {
-    return user.username || user.full_name || (user.email ? user.email.split('@')[0] : 'Unknown');
+    return user.username || user.full_name || user.email?.split('@')[0] || 'Unknown';
   };
 
   const getAvatarText = () => {
     const name = getDisplayName();
-    const firstChar = name.charAt(0).toUpperCase();
-    return firstChar || '?';
+    return name.charAt(0).toUpperCase();
   };
 
   const handleMessage = () => {
@@ -303,12 +302,12 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
       <Card style={styles.friendItem}>
         <View style={styles.friendInfo}>
           <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-            {user.avatar_url && user.avatar_url.trim() && user.avatar_url.trim() !== '' && !imageError ? (
+            {user.avatar_url && user.avatar_url.trim() && user.avatar_url.trim() !== '' ? (
               <Image
                 source={{ uri: user.avatar_url }}
                 style={styles.avatarImage}
                 onError={() => {
-                  setImageError(true);
+                  // If image fails to load, the fallback will be handled by re-render
                 }}
               />
             ) : (
@@ -400,6 +399,11 @@ export default function FriendsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [profileModalVisible, setProfileModalVisible] = useState(false);
+
+  // Get screen dimensions for responsive design
+  const { width: screenWidth } = Dimensions.get('window');
+  const isSmallScreen = screenWidth < 375; // iPhone SE and smaller
+  const isMediumScreen = screenWidth < 414; // Standard phones
 
   // Sync data when app comes to foreground
   useAppStateSync(() => {
@@ -536,20 +540,38 @@ export default function FriendsScreen() {
               key={tab}
               style={[
                 styles.tab,
+                { paddingVertical: isSmallScreen ? spacing.sm : spacing.md },
                 activeTab === tab && [styles.activeTab, { borderBottomColor: colors.primary }]
               ]}
               onPress={() => setActiveTab(tab)}
             >
               <ThemedText
-                variant="h4"
+                variant={isSmallScreen ? 'body' : 'h4'}
                 color={activeTab === tab ? 'primary' : 'textSecondary'}
-                style={styles.tabText}
+                style={[
+                  styles.tabText,
+                  { fontSize: isSmallScreen ? 14 : isMediumScreen ? 16 : 18 }
+                ]}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {isSmallScreen ? tab.charAt(0).toUpperCase() + tab.slice(1, 4) : tab.charAt(0).toUpperCase() + tab.slice(1)}
               </ThemedText>
               {getTabCount(tab) > 0 && (
-                <View style={[styles.tabBadge, { backgroundColor: colors.accent }]}>
-                  <ThemedText variant="caption" color="onAccent" style={styles.tabBadgeText}>
+                <View style={[
+                  styles.tabBadge, 
+                  { 
+                    backgroundColor: colors.accent,
+                    minWidth: isSmallScreen ? 16 : 20,
+                    height: isSmallScreen ? 16 : 20,
+                  }
+                ]}>
+                  <ThemedText 
+                    variant="caption" 
+                    color="onAccent" 
+                    style={[
+                      styles.tabBadgeText,
+                      { fontSize: isSmallScreen ? 10 : 12 }
+                    ]}
+                  >
                     {getTabCount(tab)}
                   </ThemedText>
                 </View>
@@ -658,7 +680,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xs,
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
     gap: spacing.xs,
@@ -668,17 +690,16 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontWeight: '600',
+    textAlign: 'center',
+    flexShrink: 1,
   },
   tabBadge: {
     borderRadius: 10,
-    minWidth: 20,
-    height: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
   },
   tabBadgeText: {
-    fontSize: 12,
     fontWeight: '600',
   },
   scrollView: {

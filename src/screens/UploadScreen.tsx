@@ -5,13 +5,18 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, Dimensions, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { uvaColors } from '../theme/colors';
 import { spacing, ThemedText, useTheme } from '../theme/ui';
 
 export default function UploadScreen() {
   const { colors } = useTheme();
+
+  // Get screen dimensions for responsive design
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+  const isSmallScreen = screenWidth < 375; // iPhone SE and smaller
+  const isShortScreen = screenHeight < 667; // iPhone SE height and smaller
 
   const handleCreatePost = () => {
     Alert.alert(
@@ -30,27 +35,82 @@ export default function UploadScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView 
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          {
+            paddingTop: isShortScreen ? spacing.lg : spacing.xxl,
+            paddingHorizontal: isSmallScreen ? spacing.md : spacing.lg,
+          }
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <ThemedText style={styles.title}>Create Content</ThemedText>
-          <ThemedText style={[styles.subtitle, { color: colors.textSecondary }]}>
+        <View style={[
+          styles.header,
+          { 
+            marginBottom: isShortScreen ? spacing.lg : spacing.xxl,
+            paddingHorizontal: isSmallScreen ? spacing.md : 0,
+          }
+        ]}>
+          <ThemedText style={[
+            styles.title,
+            { 
+              fontSize: isSmallScreen ? 24 : isShortScreen ? 26 : 28,
+              lineHeight: isSmallScreen ? 28 : isShortScreen ? 30 : 32,
+            }
+          ]}>
+            Create Content
+          </ThemedText>
+          <ThemedText style={[
+            styles.subtitle, 
+            { 
+              color: colors.textSecondary,
+              fontSize: isSmallScreen ? 14 : 16,
+              lineHeight: isSmallScreen ? 18 : 20,
+            }
+          ]}>
             Share your climbing adventures with the community
           </ThemedText>
         </View>
 
-        <View style={styles.optionsContainer}>
+        <View style={[
+          styles.optionsContainer,
+          { marginBottom: isShortScreen ? spacing.lg : spacing.xxl }
+        ]}>
           <TouchableOpacity
-            style={[styles.option, { backgroundColor: colors.surface }]}
+            style={[
+              styles.option, 
+              { 
+                backgroundColor: colors.surface,
+                padding: isSmallScreen ? spacing.md : spacing.lg,
+              }
+            ]}
             onPress={handleCreatePost}
           >
-            <View style={[styles.iconContainer, { backgroundColor: uvaColors.cavalierOrange }]}>
-              <Ionicons name="image" size={32} color="white" />
+            <View style={[
+              styles.iconContainer, 
+              { 
+                backgroundColor: uvaColors.cavalierOrange,
+                width: isSmallScreen ? 48 : 56,
+                height: isSmallScreen ? 48 : 56,
+                borderRadius: isSmallScreen ? 24 : 28,
+              }
+            ]}>
+              <Ionicons name="image" size={isSmallScreen ? 28 : 32} color="white" />
             </View>
             <View style={styles.optionContent}>
-              <ThemedText style={styles.optionTitle}>Create Post</ThemedText>
-              <ThemedText style={[styles.optionDescription, { color: colors.textSecondary }]}>
+              <ThemedText style={[
+                styles.optionTitle,
+                { fontSize: isSmallScreen ? 16 : 18 }
+              ]}>
+                Create Post
+              </ThemedText>
+              <ThemedText style={[
+                styles.optionDescription, 
+                { 
+                  color: colors.textSecondary,
+                  fontSize: isSmallScreen ? 13 : 14,
+                }
+              ]}>
                 Share photos and videos of your climbs
               </ThemedText>
             </View>
@@ -58,15 +118,40 @@ export default function UploadScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.option, { backgroundColor: colors.surface }]}
+            style={[
+              styles.option, 
+              { 
+                backgroundColor: colors.surface,
+                padding: isSmallScreen ? spacing.md : spacing.lg,
+              }
+            ]}
             onPress={handleCreateStory}
           >
-            <View style={[styles.iconContainer, { backgroundColor: uvaColors.jeffersonBlue }]}>
-              <Ionicons name="play-circle" size={32} color="white" />
+            <View style={[
+              styles.iconContainer, 
+              { 
+                backgroundColor: uvaColors.jeffersonBlue,
+                width: isSmallScreen ? 48 : 56,
+                height: isSmallScreen ? 48 : 56,
+                borderRadius: isSmallScreen ? 24 : 28,
+              }
+            ]}>
+              <Ionicons name="play-circle" size={isSmallScreen ? 28 : 32} color="white" />
             </View>
             <View style={styles.optionContent}>
-              <ThemedText style={styles.optionTitle}>Create Story</ThemedText>
-              <ThemedText style={[styles.optionDescription, { color: colors.textSecondary }]}>
+              <ThemedText style={[
+                styles.optionTitle,
+                { fontSize: isSmallScreen ? 16 : 18 }
+              ]}>
+                Create Story
+              </ThemedText>
+              <ThemedText style={[
+                styles.optionDescription, 
+                { 
+                  color: colors.textSecondary,
+                  fontSize: isSmallScreen ? 13 : 14,
+                }
+              ]}>
                 Share quick moments that disappear after 24 hours
               </ThemedText>
             </View>
@@ -74,26 +159,53 @@ export default function UploadScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.tipsContainer}>
-          <ThemedText style={[styles.tipsTitle, { color: colors.textSecondary }]}>
+        <View style={[
+          styles.tipsContainer,
+          { marginTop: isShortScreen ? spacing.md : spacing.lg }
+        ]}>
+          <ThemedText style={[
+            styles.tipsTitle, 
+            { 
+              color: colors.textSecondary,
+              fontSize: isSmallScreen ? 14 : 16,
+            }
+          ]}>
             Tips for great content:
           </ThemedText>
           <View style={styles.tipsList}>
             <View style={styles.tip}>
-              <Ionicons name="checkmark-circle" size={16} color={uvaColors.cavalierOrange} />
-              <ThemedText style={[styles.tipText, { color: colors.textSecondary }]}>
+              <Ionicons name="checkmark-circle" size={isSmallScreen ? 14 : 16} color={uvaColors.cavalierOrange} />
+              <ThemedText style={[
+                styles.tipText, 
+                { 
+                  color: colors.textSecondary,
+                  fontSize: isSmallScreen ? 13 : 14,
+                }
+              ]}>
                 Share your climbing progress and achievements
               </ThemedText>
             </View>
             <View style={styles.tip}>
-              <Ionicons name="checkmark-circle" size={16} color={uvaColors.cavalierOrange} />
-              <ThemedText style={[styles.tipText, { color: colors.textSecondary }]}>
+              <Ionicons name="checkmark-circle" size={isSmallScreen ? 14 : 16} color={uvaColors.cavalierOrange} />
+              <ThemedText style={[
+                styles.tipText, 
+                { 
+                  color: colors.textSecondary,
+                  fontSize: isSmallScreen ? 13 : 14,
+                }
+              ]}>
                 Tag your climbing location and routes
               </ThemedText>
             </View>
             <View style={styles.tip}>
-              <Ionicons name="checkmark-circle" size={16} color={uvaColors.cavalierOrange} />
-              <ThemedText style={[styles.tipText, { color: colors.textSecondary }]}>
+              <Ionicons name="checkmark-circle" size={isSmallScreen ? 14 : 16} color={uvaColors.cavalierOrange} />
+              <ThemedText style={[
+                styles.tipText, 
+                { 
+                  color: colors.textSecondary,
+                  fontSize: isSmallScreen ? 13 : 14,
+                }
+              ]}>
                 Connect with other climbers in the community
               </ThemedText>
             </View>
@@ -109,29 +221,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    flexGrow: 1,
     padding: spacing.lg,
-    paddingTop: spacing.xxl,
   },
   header: {
-    marginBottom: spacing.xxl,
     alignItems: 'center',
   },
   title: {
-    fontSize: 28,
     fontWeight: 'bold',
     marginBottom: spacing.sm,
-  },
-  subtitle: {
-    fontSize: 16,
     textAlign: 'center',
   },
+  subtitle: {
+    textAlign: 'center',
+    paddingHorizontal: spacing.sm,
+  },
   optionsContainer: {
-    marginBottom: spacing.xxl,
+    // marginBottom removed, will be set dynamically
   },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.lg,
     borderRadius: 12,
     marginBottom: spacing.md,
     elevation: 2,
@@ -141,9 +251,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
@@ -152,18 +259,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   optionTitle: {
-    fontSize: 18,
     fontWeight: '600',
     marginBottom: spacing.xs,
   },
   optionDescription: {
-    fontSize: 14,
+    // fontSize removed, will be set dynamically
   },
   tipsContainer: {
-    marginTop: spacing.lg,
+    // marginTop removed, will be set dynamically
   },
   tipsTitle: {
-    fontSize: 16,
     fontWeight: '600',
     marginBottom: spacing.md,
   },
@@ -177,6 +282,6 @@ const styles = StyleSheet.create({
   },
   tipText: {
     flex: 1,
-    fontSize: 14,
+    // fontSize removed, will be set dynamically
   },
 });
