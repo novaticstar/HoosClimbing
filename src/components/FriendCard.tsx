@@ -5,7 +5,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { User } from '../services/friendsService';
 import { spacing, ThemedText, useTheme } from '../theme/ui';
 
@@ -210,12 +210,15 @@ export function FriendCard({
   return (
     <View style={[styles.container, { position: 'relative' }]}>
       <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-        {user.avatar_url ? (
-          <View style={styles.avatarPlaceholder}>
-            <ThemedText variant="h4" color="onPrimary">
-              {getAvatarText()}
-            </ThemedText>
-          </View>
+        {user.avatar_url && user.avatar_url.trim() !== '' ? (
+          <Image
+            source={{ uri: user.avatar_url }}
+            style={styles.avatarImage}
+            onError={() => {
+              // If image fails to load, we could set a flag to show fallback
+              // For now, the fallback will be handled by the condition check
+            }}
+          />
         ) : (
           <ThemedText variant="h4" color="onPrimary">
             {getAvatarText()}
@@ -277,6 +280,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.sm,
     position: 'relative',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 30,
   },
   avatarPlaceholder: {
     width: '100%',
@@ -296,6 +305,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: 'white',
+    zIndex: 10,
   },
   actionButtons: {
     flexDirection: 'row',
@@ -303,6 +313,7 @@ const styles = StyleSheet.create({
     bottom: -4,
     right: -4,
     gap: 4,
+    zIndex: 10,
   },
   name: {
     textAlign: 'center',

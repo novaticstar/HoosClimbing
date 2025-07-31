@@ -5,7 +5,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { User } from '../services/friendsService';
 import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
@@ -182,9 +182,19 @@ export default function UserProfileView({
           {/* Profile Header */}
           <View style={styles.profileHeader}>
             <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-              <ThemedText variant="h1" color="onPrimary">
-                {getAvatarText()}
-              </ThemedText>
+              {user.avatar_url && user.avatar_url.trim() !== '' ? (
+                <Image
+                  source={{ uri: user.avatar_url }}
+                  style={styles.avatarImage}
+                  onError={() => {
+                    // If image fails to load, the fallback will be handled by re-render
+                  }}
+                />
+              ) : (
+                <ThemedText variant="h1" color="onPrimary">
+                  {getAvatarText()}
+                </ThemedText>
+              )}
             </View>
             <View style={styles.userInfo}>
               <ThemedText variant="h2" color="text" style={styles.displayName}>
@@ -291,6 +301,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.lg,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 50,
   },
   userInfo: {
     alignItems: 'center',

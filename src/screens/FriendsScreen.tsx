@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
     Alert,
+    Image,
     Modal,
     RefreshControl,
     ScrollView,
@@ -300,9 +301,19 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
       <Card style={styles.friendItem}>
         <View style={styles.friendInfo}>
           <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-            <ThemedText variant="h4" color="onPrimary">
-              {getAvatarText()}
-            </ThemedText>
+            {user.avatar_url && user.avatar_url.trim() !== '' ? (
+              <Image
+                source={{ uri: user.avatar_url }}
+                style={styles.avatarImage}
+                onError={() => {
+                  // If image fails to load, the fallback will be handled by re-render
+                }}
+              />
+            ) : (
+              <ThemedText variant="h4" color="onPrimary">
+                {getAvatarText()}
+              </ThemedText>
+            )}
           </View>
           <View style={styles.userDetails}>
             <ThemedText variant="h4" color="text">
@@ -692,6 +703,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 24,
   },
   userDetails: {
     flex: 1,
