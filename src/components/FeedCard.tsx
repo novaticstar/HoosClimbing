@@ -17,8 +17,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
-import { CommentService } from '../services/commentsService';
 import { FeedStackParamList } from '../navigation/FeedStack';
+import { CommentService } from '../services/commentsService';
 import { spacing, ThemedText, useTheme } from '../theme/ui';
 import { CommentSection } from './CommentSection';
 
