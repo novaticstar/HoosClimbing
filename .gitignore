@@ -42,3 +42,4 @@ yarn-error.*
 *.tsbuildinfo
 
 app
+.github/instructions/Expo-Native_React-Supabase-Dev.instructions.md
