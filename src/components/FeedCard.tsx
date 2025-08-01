@@ -91,14 +91,14 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        // Only respond to downward movements to avoid interfering with scrolling
+        // Respond to both up and down movements 
         const { dy, dx } = gestureState;
-        return dy > 8 && Math.abs(dy) > Math.abs(dx) * 1.5;
+        return Math.abs(dy) > 8 && Math.abs(dy) > Math.abs(dx) * 1.5;
       },
       onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
-        // Only capture clear downward gestures
+        // Capture both up and down gestures
         const { dy, dx } = gestureState;
-        return dy > 15 && Math.abs(dy) > Math.abs(dx) * 2;
+        return Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx) * 1.5;
       },
       onPanResponderGrant: () => {
         // Store the starting value for smooth continuation
@@ -112,20 +112,27 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
           // Moving down - allow closing with smooth following
           const newValue = dy * 0.85;
           translateY.setValue(Math.max(0, newValue));
-        } else if (dy < 0 && !isFullScreen) {
-          // Moving up - allow expanding to full screen
-          const resistedValue = dy * 0.6;
-          translateY.setValue(Math.max(-100, resistedValue));
+        } else if (dy < 0) {
+          // Moving up - allow expanding or collapsing
+          if (!isFullScreen) {
+            // Expanding to full screen
+            const resistedValue = dy * 0.6;
+            translateY.setValue(Math.max(-100, resistedValue));
+          } else {
+            // Already full screen, allow slight upward movement
+            const resistedValue = dy * 0.3;
+            translateY.setValue(Math.max(-50, resistedValue));
+          }
         }
       },
       onPanResponderRelease: (evt, gestureState) => {
         const { dy, vy } = gestureState;
         
         if (dy > 50 || vy > 0.3) {
-          // Close the modal
+          // Close the modal - swipe down
           closeModal();
         } else if (dy < -80 || vy < -0.5) {
-          // Expand to full screen
+          // Expand to full screen or collapse from full screen
           if (!isFullScreen) {
             setIsFullScreen(true);
             Animated.spring(translateY, {
@@ -135,6 +142,15 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
               friction: 8,
             }).start();
           }
+        } else if (isFullScreen && dy > 30) {
+          // Collapse from full screen when pulling down slightly
+          setIsFullScreen(false);
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            tension: 120,
+            friction: 8,
+          }).start();
         } else {
           // Snap back to original position
           Animated.spring(translateY, {
@@ -295,8 +311,28 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
                 ]}
               >
                   {/* Header with drag handle and tap to expand */}
-                  <View 
+                  <TouchableOpacity
                     style={[styles.modalHeader, { borderBottomColor: colors.border }]}
+                    onPress={() => {
+                      if (!isFullScreen) {
+                        setIsFullScreen(true);
+                        Animated.spring(translateY, {
+                          toValue: 0,
+                          useNativeDriver: true,
+                          tension: 120,
+                          friction: 8,
+                        }).start();
+                      } else {
+                        setIsFullScreen(false);
+                        Animated.spring(translateY, {
+                          toValue: 0,
+                          useNativeDriver: true,
+                          tension: 120,
+                          friction: 8,
+                        }).start();
+                      }
+                    }}
+                    activeOpacity={0.9}
                     {...panResponder.panHandlers}
                   >
                     <View style={[styles.dragHandle, { backgroundColor: colors.textSecondary }]} />
@@ -318,6 +354,15 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
                               tension: 120,
                               friction: 8,
                             }).start();
+                          } else {
+                            // Collapse from full screen back to 60%
+                            setIsFullScreen(false);
+                            Animated.spring(translateY, {
+                              toValue: 0,
+                              useNativeDriver: true,
+                              tension: 120,
+                              friction: 8,
+                            }).start();
                           }
                         }}
                       >
@@ -328,7 +373,7 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
                         />
                       </TouchableOpacity>
                     </View>
-                  </View>
+                  </TouchableOpacity>
 
                   {/* Scrollable Comments - flex to take remaining space */}
                   <ScrollView 
