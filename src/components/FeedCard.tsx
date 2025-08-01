@@ -10,10 +10,14 @@ import {
   PanResponder,
   ScrollView,
   StyleSheet,
+  TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '../context/AuthContext';
+import { CommentService } from '../services/commentsService';
 import { FeedStackParamList } from '../navigation/FeedStack';
 import { spacing, ThemedText, useTheme } from '../theme/ui';
 import { CommentSection } from './CommentSection';
@@ -26,12 +30,17 @@ type FeedCardProps = {
 };
 
 const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
 
 export const FeedCard = ({ post, onLike }: FeedCardProps) => {
   const { colors } = useTheme();
   const navigation = useNavigation<FeedCardNavigationProp>();
+  const insets = useSafeAreaInsets();
+  const { user } = useAuth();
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [refreshComments, setRefreshComments] = useState(0);
   
   // Animation refs
   const translateY = useRef(new Animated.Value(screenWidth)).current;
@@ -58,18 +67,20 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
   };
   
   const closeModal = () => {
-    // Animate modal slide down smoothly with spring
-    Animated.spring(translateY, {
-      toValue: screenWidth,
+    // Animate modal slide down smoothly - ensure it goes all the way
+    Animated.timing(translateY, {
+      toValue: screenWidth * 1.2, // Go beyond screen to ensure full dismissal
+      duration: 350,
       useNativeDriver: true,
-      tension: 80,
-      friction: 8,
-    }).start();
+    }).start(() => {
+      // Reset translateY after animation completes
+      translateY.setValue(screenWidth);
+    });
     
-    // Animate background fade out
+    // Animate background fade out slightly faster
     Animated.timing(backgroundOpacity, {
       toValue: 0,
-      duration: 300,
+      duration: 250,
       useNativeDriver: false,
     }).start(() => {
       setShowCommentsModal(false);
@@ -80,60 +91,71 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        // Only respond to vertical movements and ignore small movements
-        return Math.abs(gestureState.dy) > 10 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
+        // Only respond to downward movements to avoid interfering with scrolling
+        const { dy, dx } = gestureState;
+        return dy > 8 && Math.abs(dy) > Math.abs(dx) * 1.5;
       },
       onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
-        return Math.abs(gestureState.dy) > 10 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
+        // Only capture clear downward gestures
+        const { dy, dx } = gestureState;
+        return dy > 15 && Math.abs(dy) > Math.abs(dx) * 2;
       },
       onPanResponderGrant: () => {
-        // Store the starting value
+        // Store the starting value for smooth continuation
+        translateY.extractOffset();
         panStartValue.current = 0;
       },
       onPanResponderMove: (evt, gestureState) => {
-        // Follow user's finger smoothly with some resistance
         const { dy } = gestureState;
         
         if (dy > 0) {
-          // Moving down - allow for closing with some resistance
-          const resistedValue = dy * 0.7; // Add resistance
-          translateY.setValue(Math.max(0, resistedValue));
+          // Moving down - allow closing with smooth following
+          const newValue = dy * 0.85;
+          translateY.setValue(Math.max(0, newValue));
         } else if (dy < 0 && !isFullScreen) {
-          // Moving up - allow for expanding to full screen with resistance
-          const resistedValue = dy * 0.5; // More resistance for upward movement
-          translateY.setValue(Math.max(-80, resistedValue));
+          // Moving up - allow expanding to full screen
+          const resistedValue = dy * 0.6;
+          translateY.setValue(Math.max(-100, resistedValue));
         }
       },
       onPanResponderRelease: (evt, gestureState) => {
         const { dy, vy } = gestureState;
         
-        // More sensitive thresholds for better UX
-        if (dy > 120 || vy > 0.6) {
-          // Close the modal - swipe down far enough or fast enough
+        if (dy > 50 || vy > 0.3) {
+          // Close the modal
           closeModal();
-        } else if (dy < -80 || vy < -0.6) {
-          // Expand to full screen - swipe up far enough or fast enough
+        } else if (dy < -80 || vy < -0.5) {
+          // Expand to full screen
           if (!isFullScreen) {
             setIsFullScreen(true);
             Animated.spring(translateY, {
               toValue: 0,
               useNativeDriver: true,
-              tension: 100,
+              tension: 120,
               friction: 8,
             }).start();
           }
         } else {
-          // Snap back to original position with spring animation
+          // Snap back to original position
           Animated.spring(translateY, {
             toValue: 0,
             useNativeDriver: true,
-            tension: 100,
+            tension: 120,
             friction: 8,
           }).start();
         }
       },
     })
   ).current;
+
+  const handleAddComment = async () => {
+    if (!commentText.trim() || !user) return;
+    const success = await CommentService.addComment(post.id, user.id, commentText.trim());
+    if (success) {
+      setCommentText('');
+      setRefreshComments(prev => prev + 1); // Trigger refresh in CommentSection
+    }
+  };
 
   // Stub images for demo purposes
   const stubImages = [
@@ -267,16 +289,17 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
                   { 
                     backgroundColor: colors.background,
                     transform: [{ translateY }],
-                    height: isFullScreen ? '100%' : '85%'
+                    height: isFullScreen ? screenHeight - insets.top : screenHeight * 0.6,
+                    marginTop: isFullScreen ? insets.top : 0,
                   }
                 ]}
               >
-                  {/* Header with drag handle - this area handles gestures */}
+                  {/* Header with drag handle and tap to expand */}
                   <View 
                     style={[styles.modalHeader, { borderBottomColor: colors.border }]}
                     {...panResponder.panHandlers}
                   >
-                    <View style={styles.dragHandle} />
+                    <View style={[styles.dragHandle, { backgroundColor: colors.textSecondary }]} />
                     <View style={styles.headerContent}>
                       <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
                         <Ionicons name="close" size={24} color={colors.text} />
@@ -284,19 +307,85 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
                       <ThemedText variant="h3" color="text" style={styles.headerTitle}>
                         Comments
                       </ThemedText>
-                      <View style={styles.headerSpacer} />
+                      <TouchableOpacity 
+                        style={styles.expandButton}
+                        onPress={() => {
+                          if (!isFullScreen) {
+                            setIsFullScreen(true);
+                            Animated.spring(translateY, {
+                              toValue: 0,
+                              useNativeDriver: true,
+                              tension: 120,
+                              friction: 8,
+                            }).start();
+                          }
+                        }}
+                      >
+                        <Ionicons 
+                          name={isFullScreen ? "chevron-down" : "chevron-up"} 
+                          size={20} 
+                          color={colors.textSecondary} 
+                        />
+                      </TouchableOpacity>
                     </View>
                   </View>
 
-                  {/* Scrollable Comments - this area scrolls independently */}
+                  {/* Scrollable Comments - flex to take remaining space */}
                   <ScrollView 
-                    style={styles.modalContent}
+                    style={styles.commentsScrollView}
+                    contentContainerStyle={styles.commentsContainer}
                     showsVerticalScrollIndicator={false}
                     bounces={true}
                     keyboardShouldPersistTaps="handled"
+                    directionalLockEnabled={true}
+                    scrollEventThrottle={16}
+                    nestedScrollEnabled={true}
                   >
-                    <CommentSection postId={post.id} username={post.profiles?.username} />
+                    <CommentSection 
+                      postId={post.id} 
+                      username={post.profiles?.username}
+                    />
                   </ScrollView>
+
+                  {/* Fixed Comment Input at Bottom */}
+                  <View style={[
+                    styles.commentInputContainer, 
+                    { 
+                      backgroundColor: colors.background,
+                      borderTopColor: colors.border,
+                      paddingBottom: Math.max(insets.bottom, spacing.sm)
+                    }
+                  ]}>
+                    <View style={[styles.inputRow, { backgroundColor: colors.surface }]}>
+                      <TextInput
+                        value={commentText}
+                        onChangeText={setCommentText}
+                        style={[styles.commentInput, { color: colors.text }]}
+                        placeholder="Add a comment..."
+                        placeholderTextColor={colors.textSecondary}
+                        multiline
+                        maxLength={500}
+                      />
+                      <TouchableOpacity 
+                        onPress={handleAddComment} 
+                        disabled={!commentText.trim()}
+                        style={[
+                          styles.postButton,
+                          { 
+                            backgroundColor: commentText.trim() ? colors.accent : colors.surfaceVariant,
+                          }
+                        ]}
+                      >
+                        <ThemedText 
+                          variant="caption" 
+                          color={commentText.trim() ? "background" : "textSecondary"}
+                          style={styles.postButtonText}
+                        >
+                          Post
+                        </ThemedText>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </Animated.View>
             </TouchableWithoutFeedback>
           </Animated.View>
@@ -384,21 +473,20 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContainer: {
-    height: '85%',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    overflow: 'hidden',
   },
   modalHeader: {
     paddingTop: 12,
     paddingBottom: spacing.sm,
     borderBottomWidth: 1,
     alignItems: 'center',
-    minHeight: 60, // Ensure adequate touch area for gestures
+    minHeight: 60,
   },
   dragHandle: {
     width: 40,
     height: 4,
-    backgroundColor: '#CCCCCC',
     borderRadius: 2,
     marginBottom: 12,
   },
@@ -410,16 +498,55 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: spacing.xs,
+    width: 40,
+    alignItems: 'center',
   },
   headerTitle: {
     flex: 1,
     textAlign: 'center',
     fontWeight: '600',
   },
-  headerSpacer: {
-    width: 32,
+  expandButton: {
+    padding: spacing.xs,
+    width: 40,
+    alignItems: 'center',
   },
-  modalContent: {
+  commentsScrollView: {
     flex: 1,
+  },
+  commentsContainer: {
+    flexGrow: 1,
+  },
+  commentInputContainer: {
+    borderTopWidth: 1,
+    paddingTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    borderRadius: 20,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    minHeight: 40,
+  },
+  commentInput: {
+    flex: 1,
+    fontSize: 14,
+    maxHeight: 100,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.xs,
+  },
+  postButton: {
+    borderRadius: 16,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    marginLeft: spacing.xs,
+    minWidth: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  postButtonText: {
+    fontWeight: '600',
   },
 });

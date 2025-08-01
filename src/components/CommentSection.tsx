@@ -9,6 +9,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { formatDistanceToNow } from 'date-fns';
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { FeedStackParamList } from '../navigation/FeedStack';
 import { Comment, CommentService } from '../services/commentsService';
@@ -25,6 +26,7 @@ export function CommentSection({ postId, username }: Props) {
   const { colors } = useTheme();
   const { user } = useAuth();
   const navigation = useNavigation<CommentNavigationProp>();
+  const insets = useSafeAreaInsets();
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [text, setText] = useState('');
@@ -39,9 +41,9 @@ export function CommentSection({ postId, username }: Props) {
     setLoading(true);
     const data = await CommentService.getCommentsForPost(postId, user?.id);
 
-    // Sort comments to show most recent at bottom (like Instagram)
+    // Sort comments to show most recent at top (reversed chronological order)
     const sortedData = data.sort((a, b) => 
-      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
 
     setComments(sortedData);
@@ -294,31 +296,10 @@ export function CommentSection({ postId, username }: Props) {
         </View>
       ) : (
         <>
-          {/* Show all comments in expanded mode */}
+          {/* Show all comments */}
           {comments.map(comment => renderComment(comment))}
         </>
       )}
-
-      {/* Add Comment Input */}
-      <View style={styles.addCommentContainer}>
-          <TextInput
-            value={text}
-            onChangeText={setText}
-            style={[styles.commentInput, { backgroundColor: colors.surface, color: colors.text }]}
-            placeholder="Add a comment..."
-            placeholderTextColor={colors.textSecondary}
-            multiline
-          />
-          <TouchableOpacity onPress={handleAddComment} disabled={!text.trim()}>
-            <ThemedText 
-              variant="caption" 
-              color={text.trim() ? "accent" : "textSecondary"}
-              style={styles.postButton}
-            >
-              Post
-            </ThemedText>
-          </TouchableOpacity>
-        </View>
     </View>
   );
 }
@@ -452,25 +433,5 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     marginTop: spacing.xs,
     gap: spacing.sm,
-  },
-  addCommentContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.sm,
-    paddingBottom: spacing.sm,
-  },
-  commentInput: {
-    flex: 1,
-    borderRadius: 20,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    fontSize: 14,
-    maxHeight: 80,
-    marginRight: spacing.sm,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  postButton: {
-    fontWeight: '600',
   },
 });
