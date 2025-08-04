@@ -5,7 +5,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, Image, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { HomeStackParamList } from '../navigation/HomeStack';
 import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
@@ -39,7 +39,17 @@ export default function EventsScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <Container style={styles.content}>
-          <ThemedText variant="h2" color="text" style={styles.title}>Events</ThemedText>
+          <View style={styles.titleRow}>
+            <ThemedText variant="h2" color="text" style={styles.title}>Events</ThemedText>
+
+          {/* Create Event Button */}
+            <TouchableOpacity
+              onPress={() => console.log('Add Event pressed')}
+              style={[styles.addEventButton, { backgroundColor: colors.accent }]}
+            >
+              <ThemedText variant="body" color="onAccent">+ Add</ThemedText>
+            </TouchableOpacity>
+          </View>
 
           {/* Popular Event */}
           {popularEvent && (
@@ -47,9 +57,6 @@ export default function EventsScreen() {
               <ThemedText variant="h3" color="text" style={styles.sectionTitle}>Popular Event</ThemedText>
               <TouchableOpacity onPress={() => handleEventPress(popularEvent.id)}>
                 <Card style={styles.popularCard}>
-                  {popularEvent.image_url && (
-                    <Image source={{ uri: popularEvent.image_url }} style={styles.eventImage} />
-                  )}
                   <ThemedText variant="h4" color="text">{popularEvent.title}</ThemedText>
                   <ThemedText variant="body" color="textSecondary">{popularEvent.description}</ThemedText>
                   <ThemedText variant="caption" color="accent">{popularEvent.event_date}</ThemedText>
@@ -63,9 +70,6 @@ export default function EventsScreen() {
           {upcomingEvents.map((event) => (
             <TouchableOpacity key={event.id} onPress={() => handleEventPress(event.id)}>
               <Card style={styles.eventCard}>
-                {event.image_url && (
-                  <Image source={{ uri: event.image_url }} style={styles.eventImageSmall} />
-                )}
                 <ThemedText variant="h4" color="text">{event.title}</ThemedText>
                 <ThemedText variant="body" color="textSecondary">{event.description}</ThemedText>
                 <ThemedText variant="caption" color="accent">{event.event_date}</ThemedText>
@@ -93,15 +97,16 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderRadius: 12,
   },
-  eventImage: {
-    width: '100%',
-    height: 830,
-    resizeMode: 'cover',
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
   },
-  eventImageSmall: {
-    width: '100%',
-    height: 20,
-    borderRadius: 10,
-    marginBottom: spacing.md,
+
+  addEventButton: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: 6,
   },
-});
+   });
