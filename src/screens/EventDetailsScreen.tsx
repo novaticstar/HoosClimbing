@@ -46,6 +46,7 @@ export default function EventDetailsScreen() {
       if (error) {
         console.error('Error fetching event:', error);
       } else {
+        console.log('Fetched event:', data);
         setEvent(data);
       }
     }
@@ -115,12 +116,17 @@ export default function EventDetailsScreen() {
 
           {/* Event Image */}
           {event?.image_url ? (
-              <Image source={{ uri: event.image_url }} style={styles.imageBox} />
-            ) : (
-              <View style={[styles.imageBox, { backgroundColor: colors.surfaceVariant }]}>
-                <ThemedText variant="body" color="textSecondary">No image provided</ThemedText>
-              </View>
-            )}
+            <Image
+              key={event.image_url}
+              source={{ uri: event.image_url}}
+              style={styles.imageBox}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={[styles.imageBox, { backgroundColor: colors.surfaceVariant }]}>
+              <ThemedText variant="body" color="textSecondary">No image provided</ThemedText>
+            </View>
+          )}
 
           {/* Event Description */}
           <ThemedText variant="body" color="textSecondary" style={styles.description}>
@@ -172,7 +178,7 @@ const styles = StyleSheet.create({
   title: { marginBottom: spacing.md },
   imageBox: {
     width: '100%',
-    height: 200,
+    aspectRatio: 13 / 9,
     borderRadius: 12,
     marginBottom: spacing.md,
   },
