@@ -82,10 +82,10 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: spacing.lg },
   title: { marginBottom: spacing.lg },
-  sectionTitle: { marginTop: spacing.lg, marginBottom: spacing.md },
+  sectionTitle: { marginTop: spacing.md, marginBottom: spacing.md },
   popularCard: {
-    marginBottom: spacing.xl,
-    padding: spacing.md,
+    marginBottom: spacing.sm,
+    padding: spacing.lg,
     borderRadius: 12,
   },
   eventCard: {
@@ -95,14 +95,13 @@ const styles = StyleSheet.create({
   },
   eventImage: {
     width: '100%',
-    height: 160,
-    borderRadius: 10,
-    marginBottom: spacing.sm,
+    height: 830,
+    resizeMode: 'cover',
   },
   eventImageSmall: {
     width: '100%',
-    height: 100,
+    height: 20,
     borderRadius: 10,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
 });
