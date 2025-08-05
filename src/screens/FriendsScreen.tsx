@@ -7,11 +7,13 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
     Alert,
+    Dimensions,
     Image,
     Modal,
     RefreshControl,
     ScrollView,
     StyleSheet,
+    Text,
     TextInput,
     TouchableOpacity,
     View
@@ -36,6 +38,8 @@ interface FriendListItemProps {
   onAcceptFriend?: (userId: string) => Promise<boolean>;
   onRemoveFriend?: (userId: string) => Promise<boolean>;
   onCancelRequest?: (userId: string) => Promise<boolean>;
+  isSmallScreen?: boolean;
+  isMediumScreen?: boolean;
 }
 
 const FriendListItem: React.FC<FriendListItemProps> = ({
@@ -47,19 +51,19 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
   onAcceptFriend,
   onRemoveFriend,
   onCancelRequest,
+  isSmallScreen = false,
+  isMediumScreen = false,
 }) => {
   const { colors } = useTheme();
   const [showDropdown, setShowDropdown] = useState(false);
-  const [imageError, setImageError] = useState(false);
 
   const getDisplayName = () => {
-    return user.username || user.full_name || (user.email ? user.email.split('@')[0] : 'Unknown');
+    return user.username || user.full_name || user.email?.split('@')[0] || 'Unknown';
   };
 
   const getAvatarText = () => {
     const name = getDisplayName();
-    const firstChar = name.charAt(0).toUpperCase();
-    return firstChar || '?';
+    return name.charAt(0).toUpperCase();
   };
 
   const handleMessage = () => {
@@ -156,21 +160,49 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
         return (
           <View style={styles.actionButtons}>
             <TouchableOpacity
-              style={[styles.actionButton, styles.messageButton, { backgroundColor: colors.primary }]}
+              style={[
+                styles.actionButton, 
+                styles.messageButton, 
+                { 
+                  backgroundColor: colors.primary,
+                  paddingHorizontal: isSmallScreen ? spacing.xs : spacing.sm,
+                  paddingVertical: isSmallScreen ? 4 : spacing.xs,
+                }
+              ]}
               onPress={handleMessage}
             >
-              <Ionicons name="chatbubble" size={16} color={colors.onPrimary} />
-              <ThemedText variant="caption" color="onPrimary" style={styles.buttonText}>
+              <Ionicons name="chatbubble" size={isSmallScreen ? 14 : 16} color={colors.onPrimary} />
+              <Text style={[
+                styles.buttonText,
+                { 
+                  color: colors.onPrimary,
+                  fontSize: isSmallScreen ? 11 : 12,
+                }
+              ]}>
                 Message
-              </ThemedText>
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
+              style={[
+                styles.actionButton, 
+                styles.secondaryButton, 
+                { 
+                  borderColor: colors.border,
+                  paddingHorizontal: isSmallScreen ? spacing.xs : spacing.sm,
+                  paddingVertical: isSmallScreen ? 4 : spacing.xs,
+                }
+              ]}
               onPress={handleViewProfile}
             >
-              <ThemedText variant="caption" color="text" style={styles.buttonText}>
+              <Text style={[
+                styles.buttonText,
+                { 
+                  color: colors.text,
+                  fontSize: isSmallScreen ? 11 : 12,
+                }
+              ]}>
                 Profile
-              </ThemedText>
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.iconButton, { backgroundColor: colors.surfaceVariant }]}
@@ -184,21 +216,49 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
         return (
           <View style={styles.actionButtons}>
             <TouchableOpacity
-              style={[styles.actionButton, styles.acceptButton, { backgroundColor: colors.success }]}
+              style={[
+                styles.actionButton, 
+                styles.acceptButton, 
+                { 
+                  backgroundColor: colors.success,
+                  paddingHorizontal: isSmallScreen ? spacing.xs : spacing.sm,
+                  paddingVertical: isSmallScreen ? 4 : spacing.xs,
+                }
+              ]}
               onPress={handleAcceptFriend}
             >
-              <Ionicons name="checkmark" size={16} color={colors.onPrimary} />
-              <ThemedText variant="caption" color="onPrimary" style={styles.buttonText}>
+              <Ionicons name="checkmark" size={isSmallScreen ? 14 : 16} color={colors.onPrimary} />
+              <Text style={[
+                styles.buttonText,
+                { 
+                  color: colors.onPrimary,
+                  fontSize: isSmallScreen ? 11 : 12,
+                }
+              ]}>
                 Accept
-              </ThemedText>
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
+              style={[
+                styles.actionButton, 
+                styles.secondaryButton, 
+                { 
+                  borderColor: colors.border,
+                  paddingHorizontal: isSmallScreen ? spacing.xs : spacing.sm,
+                  paddingVertical: isSmallScreen ? 4 : spacing.xs,
+                }
+              ]}
               onPress={handleViewProfile}
             >
-              <ThemedText variant="caption" color="text" style={styles.buttonText}>
+              <Text style={[
+                styles.buttonText,
+                { 
+                  color: colors.text,
+                  fontSize: isSmallScreen ? 11 : 12,
+                }
+              ]}>
                 Profile
-              </ThemedText>
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.iconButton, { backgroundColor: colors.surfaceVariant }]}
@@ -234,21 +294,49 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
         return (
           <View style={styles.actionButtons}>
             <TouchableOpacity
-              style={[styles.actionButton, styles.cancelButton, { backgroundColor: colors.warning }]}
+              style={[
+                styles.actionButton, 
+                styles.cancelButton, 
+                { 
+                  backgroundColor: colors.warning,
+                  paddingHorizontal: isSmallScreen ? spacing.xs : spacing.sm,
+                  paddingVertical: isSmallScreen ? 4 : spacing.xs,
+                }
+              ]}
               onPress={handleCancelRequest}
             >
-              <Ionicons name="time" size={16} color={colors.onPrimary} />
-              <ThemedText variant="caption" color="onPrimary" style={styles.buttonText}>
+              <Ionicons name="time" size={isSmallScreen ? 14 : 16} color={colors.onPrimary} />
+              <Text style={[
+                styles.buttonText,
+                { 
+                  color: colors.onPrimary,
+                  fontSize: isSmallScreen ? 11 : 12,
+                }
+              ]}>
                 Cancel
-              </ThemedText>
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
+              style={[
+                styles.actionButton, 
+                styles.secondaryButton, 
+                { 
+                  borderColor: colors.border,
+                  paddingHorizontal: isSmallScreen ? spacing.xs : spacing.sm,
+                  paddingVertical: isSmallScreen ? 4 : spacing.xs,
+                }
+              ]}
               onPress={handleViewProfile}
             >
-              <ThemedText variant="caption" color="text" style={styles.buttonText}>
+              <Text style={[
+                styles.buttonText,
+                { 
+                  color: colors.text,
+                  fontSize: isSmallScreen ? 11 : 12,
+                }
+              ]}>
                 Profile
-              </ThemedText>
+              </Text>
             </TouchableOpacity>
           </View>
         );
@@ -256,21 +344,49 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
         return (
           <View style={styles.actionButtons}>
             <TouchableOpacity
-              style={[styles.actionButton, styles.addButton, { backgroundColor: colors.primary }]}
+              style={[
+                styles.actionButton, 
+                styles.addButton, 
+                { 
+                  backgroundColor: colors.primary,
+                  paddingHorizontal: isSmallScreen ? spacing.xs : spacing.sm,
+                  paddingVertical: isSmallScreen ? 4 : spacing.xs,
+                }
+              ]}
               onPress={handleAddFriend}
             >
-              <Ionicons name="person-add" size={16} color={colors.onPrimary} />
-              <ThemedText variant="caption" color="onPrimary" style={styles.buttonText}>
+              <Ionicons name="person-add" size={isSmallScreen ? 14 : 16} color={colors.onPrimary} />
+              <Text style={[
+                styles.buttonText,
+                { 
+                  color: colors.onPrimary,
+                  fontSize: isSmallScreen ? 10 : 12,
+                }
+              ]}>
                 Add Friend
-              </ThemedText>
+              </Text>  
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
+              style={[
+                styles.actionButton, 
+                styles.secondaryButton, 
+                { 
+                  borderColor: colors.border,
+                  paddingHorizontal: isSmallScreen ? spacing.xs : spacing.sm,
+                  paddingVertical: isSmallScreen ? 4 : spacing.xs,
+                }
+              ]}
               onPress={handleViewProfile}
             >
-              <ThemedText variant="caption" color="text" style={styles.buttonText}>
+              <Text style={[
+                styles.buttonText,
+                { 
+                  color: colors.text,
+                  fontSize: isSmallScreen ? 11 : 12,
+                }
+              ]}>
                 Profile
-              </ThemedText>
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.iconButton, { backgroundColor: colors.surfaceVariant }]}
@@ -303,12 +419,12 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
       <Card style={styles.friendItem}>
         <View style={styles.friendInfo}>
           <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-            {user.avatar_url && user.avatar_url.trim() && user.avatar_url.trim() !== '' && !imageError ? (
+            {user.avatar_url && user.avatar_url.trim() && user.avatar_url.trim() !== '' ? (
               <Image
                 source={{ uri: user.avatar_url }}
                 style={styles.avatarImage}
                 onError={() => {
-                  setImageError(true);
+                  // If image fails to load, the fallback will be handled by re-render
                 }}
               />
             ) : (
@@ -318,23 +434,49 @@ const FriendListItem: React.FC<FriendListItemProps> = ({
             )}
           </View>
           <View style={styles.userDetails}>
-            <ThemedText variant="h4" color="text">
+            <Text 
+              style={{
+                fontSize: isSmallScreen ? 14 : isMediumScreen ? 16 : 18,
+                fontWeight: '600',
+                color: colors.text,
+                flexShrink: 1,
+              }}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {getDisplayName()}
-            </ThemedText>
+            </Text>
             {user.full_name && user.full_name !== getDisplayName() && (
-              <ThemedText variant="body" color="textSecondary">
+              <Text 
+                style={{
+                  fontSize: isSmallScreen ? 12 : 14,
+                  color: colors.textSecondary,
+                  flexShrink: 1,
+                  marginTop: 2,
+                }}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {user.full_name}
-              </ThemedText>
+              </Text>
             )}
             {type === 'pending' && (
-              <ThemedText variant="caption" color="accent">
+              <Text style={{
+                fontSize: isSmallScreen ? 11 : 12,
+                color: colors.accent,
+                marginTop: 2,
+              }}>
                 Wants to be friends
-              </ThemedText>
+              </Text>
             )}
             {type === 'sent' && (
-              <ThemedText variant="caption" color="warning">
+              <Text style={{
+                fontSize: isSmallScreen ? 11 : 12,
+                color: colors.warning,
+                marginTop: 2,
+              }}>
                 Request sent
-              </ThemedText>
+              </Text>
             )}
           </View>
         </View>
@@ -401,6 +543,11 @@ export default function FriendsScreen() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [profileModalVisible, setProfileModalVisible] = useState(false);
 
+  // Get screen dimensions for responsive design
+  const { width: screenWidth } = Dimensions.get('window');
+  const isSmallScreen = screenWidth < 375; // iPhone SE and smaller
+  const isMediumScreen = screenWidth < 414; // Standard phones
+
   // Sync data when app comes to foreground
   useAppStateSync(() => {
     refresh();
@@ -450,6 +597,8 @@ export default function FriendsScreen() {
             type="friend"
             onViewProfile={() => handleViewProfile(friend)}
             onRemoveFriend={removeFriend}
+            isSmallScreen={isSmallScreen}
+            isMediumScreen={isMediumScreen}
           />
         ));
       case 'requests':
@@ -465,6 +614,8 @@ export default function FriendsScreen() {
               onViewProfile={() => handleViewProfile(request)}
               onAcceptFriend={acceptFriendRequest}
               onCancelRequest={cancelFriendRequest}
+              isSmallScreen={isSmallScreen}
+              isMediumScreen={isMediumScreen}
             />
           );
         });
@@ -477,6 +628,8 @@ export default function FriendsScreen() {
             type="suggestion"
             onViewProfile={() => handleViewProfile(suggestion)}
             onAddFriend={sendFriendRequest}
+            isSmallScreen={isSmallScreen}
+            isMediumScreen={isMediumScreen}
           />
         ));
       default:
@@ -536,20 +689,38 @@ export default function FriendsScreen() {
               key={tab}
               style={[
                 styles.tab,
+                { paddingVertical: isSmallScreen ? spacing.sm : spacing.md },
                 activeTab === tab && [styles.activeTab, { borderBottomColor: colors.primary }]
               ]}
               onPress={() => setActiveTab(tab)}
             >
               <ThemedText
-                variant="h4"
+                variant={isSmallScreen ? 'body' : 'h4'}
                 color={activeTab === tab ? 'primary' : 'textSecondary'}
-                style={styles.tabText}
+                style={[
+                  styles.tabText,
+                  { fontSize: isSmallScreen ? 14 : isMediumScreen ? 16 : 18 }
+                ]}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {isSmallScreen ? tab.charAt(0).toUpperCase() + tab.slice(1, 4) : tab.charAt(0).toUpperCase() + tab.slice(1)}
               </ThemedText>
               {getTabCount(tab) > 0 && (
-                <View style={[styles.tabBadge, { backgroundColor: colors.accent }]}>
-                  <ThemedText variant="caption" color="onAccent" style={styles.tabBadgeText}>
+                <View style={[
+                  styles.tabBadge, 
+                  { 
+                    backgroundColor: colors.accent,
+                    minWidth: isSmallScreen ? 16 : 20,
+                    height: isSmallScreen ? 16 : 20,
+                  }
+                ]}>
+                  <ThemedText 
+                    variant="caption" 
+                    color="onAccent" 
+                    style={[
+                      styles.tabBadgeText,
+                      { fontSize: isSmallScreen ? 10 : 12 }
+                    ]}
+                  >
                     {getTabCount(tab)}
                   </ThemedText>
                 </View>
@@ -658,7 +829,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xs,
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
     gap: spacing.xs,
@@ -668,17 +839,16 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontWeight: '600',
+    textAlign: 'center',
+    flexShrink: 1,
   },
   tabBadge: {
     borderRadius: 10,
-    minWidth: 20,
-    height: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
   },
   tabBadgeText: {
-    fontSize: 12,
     fontWeight: '600',
   },
   scrollView: {
@@ -719,14 +889,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.xs,
     alignItems: 'center',
+    flexShrink: 1,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
     borderRadius: 8,
     gap: 4,
+    minWidth: 0,
+    flexShrink: 1,
   },
   messageButton: {},
   addButton: {},
@@ -744,8 +915,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    fontSize: 12,
     fontWeight: '600',
+    flexShrink: 1,
   },
   loadingContainer: {
     flex: 1,

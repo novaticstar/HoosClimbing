@@ -2,61 +2,108 @@
  * Event Details Screen
  */
 
-import React, { useState } from 'react';
-import { ScrollView, View, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ThemedText, spacing, Container, Card, useTheme } from '../theme/ui';
 import { Ionicons } from '@expo/vector-icons';
-import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RouteProp } from '@react-navigation/native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import type { EventsStackParamList } from '../navigation/EventsStack';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity, View, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import type { HomeStackParamList } from '../navigation/HomeStack';
+import { Container, ThemedText, spacing, useTheme } from '../theme/ui';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
+import { Avatar } from '../components/Avatar';
 
-type EventDetailsScreenNavigationProp = StackNavigationProp<EventsStackParamList, 'EventDetails'>;
-type EventDetailsScreenRouteProp = RouteProp<EventsStackParamList, 'EventDetails'>;
-
-// Placeholder avatar generator
-const getInitials = (name: string) => name.split(' ').map(w => w[0]).join('').toUpperCase();
+type EventDetailsScreenNavigationProp = StackNavigationProp<HomeStackParamList, 'EventDetails'>;
+type EventDetailsScreenRouteProp = RouteProp<HomeStackParamList, 'EventDetails'>;
 
 export default function EventDetailsScreen() {
   const { colors } = useTheme();
   const navigation = useNavigation<EventDetailsScreenNavigationProp>();
   const route = useRoute<EventDetailsScreenRouteProp>();
+  const { user } = useAuth();
 
   const { eventId } = route.params;
-
-  const event = {
-    id: eventId,
-    title: 'Horseshoe Hell',
-    description: 'Multi-day festival full of bouldering challengers and climbing competitions.',
-    date: 'September 24-28',
-    image: null, // Placeholder for future media support
-  };
-
-  const allAttendees = [
-    { id: '1', username: 'climber1' },
-    { id: '2', username: 'rockstar2' },
-    { id: '3', username: 'boulderqueen' },
-    { id: '4', username: 'peakfinder' },
-    { id: '5', username: 'chalkwarrior' },
-  ];
-
+  const [event, setEvent] = useState<any>(null);
+  const [attendees, setAttendees] = useState<any[]>([]);
   const previewLimit = 3;
   const [isAttending, setIsAttending] = useState(false);
   const [showAll, setShowAll] = useState(false);
 
-  const attendeesToShow = showAll ? allAttendees : allAttendees.slice(0, previewLimit);
+  useEffect(() => {
+      fetchEvent();
+      fetchAttendees();
+    }, [eventId]);
 
-  const handleToggleAttend = () => setIsAttending(!isAttending);
+    async function fetchEvent() {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('id', eventId)
+        .single();
 
-  const handleGoBack = () => {
-      navigation.goBack();
-    };
+      if (error) {
+        console.error('Error fetching event:', error);
+      } else {
+        console.log('Fetched event:', data);
+        setEvent(data);
+      }
+    }
+
+    async function fetchAttendees() {
+        const { data, error } = await supabase
+          .from('event_attendance')
+          .select('profiles(id, username, avatar_url)')
+          .eq('event_id', eventId);
+
+        if (error) {
+          console.error('Error fetching attendees:', error);
+          return;
+        }
+
+        const list = (data || []).map((row: any) => row.profiles);
+        setAttendees(list);
+        setIsAttending(list.some((a: any) => a.id === user?.id));
+      }
+  async function handleToggleAttend() {
+      if (!user) return;
+
+      if (isAttending) {
+        const { error } = await supabase
+          .from('event_attendance')
+          .delete()
+          .match({ event_id: eventId, user_id: user.id });
+
+        if (error) {
+          console.error('Error removing attendance:', error);
+        } else {
+          setIsAttending(false);
+          fetchAttendees();
+        }
+      } else {
+        const { error } = await supabase
+          .from('event_attendance')
+          .insert({ event_id: eventId, user_id: user.id });
+
+        if (error) {
+          console.error('Error attending event:', error);
+        } else {
+          setIsAttending(true);
+          fetchAttendees();
+        }
+      }
+    }
+
+  const attendeesToShow = showAll ? attendees : attendees.slice(0, previewLimit);
+
+  const handleGoBack = () => navigation.goBack();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView>
         <Container style={styles.content}>
+            {/* Back Button */}
             <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
             <ThemedText variant="body" color="text" style={styles.backText}>Back to Events</ThemedText>
@@ -64,19 +111,28 @@ export default function EventDetailsScreen() {
 
           {/* Event Title */}
           <ThemedText variant="h2" color="text" style={styles.title}>
-            {event.title}
+            {event?.title ?? 'Loading...'}
           </ThemedText>
 
-          {/* Event Image (Placeholder Box) */}
-          <View style={[styles.imageBox, { backgroundColor: colors.surfaceVariant }]}>
-            <ThemedText variant="body" color="textSecondary">Event image coming soon</ThemedText>
-          </View>
+          {/* Event Image */}
+          {event?.image_url ? (
+            <Image
+              key={event.image_url}
+              source={{ uri: event.image_url}}
+              style={styles.imageBox}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={[styles.imageBox, { backgroundColor: colors.surfaceVariant }]}>
+              <ThemedText variant="body" color="textSecondary">No image provided</ThemedText>
+            </View>
+          )}
 
           {/* Event Description */}
           <ThemedText variant="body" color="textSecondary" style={styles.description}>
-            {event.description}
+            {event?.description}
           </ThemedText>
-          <ThemedText variant="caption" color="accent">{event.date}</ThemedText>
+          <ThemedText variant="caption" color="accent">{event?.event_date}</ThemedText>
 
           {/* Attend Button */}
           <TouchableOpacity
@@ -87,7 +143,7 @@ export default function EventDetailsScreen() {
             onPress={handleToggleAttend}
           >
             <ThemedText variant="body" color={isAttending ? 'onAccent' : 'text'}>
-              {isAttending ? 'Attending' : 'Attend'}
+              {isAttending ? 'Attending!' : 'Attend'}
             </ThemedText>
           </TouchableOpacity>
 
@@ -95,18 +151,17 @@ export default function EventDetailsScreen() {
           <ThemedText variant="h4" color="text" style={styles.sectionTitle}>
             Attendees
           </ThemedText>
-          <View style={styles.attendeeRow}>
+          <View style={styles.attendeeColumn}>
             {attendeesToShow.map((user) => (
-              <View key={user.id} style={[styles.avatarBox, { backgroundColor: colors.surfaceVariant }]}>
-                <ThemedText variant="caption" color="textSecondary">
-                  {getInitials(user.username)}
-                </ThemedText>
+              <View key={user.id} style={styles.attendeeItem}>
+                  <Avatar uri={user.avatar_url} name={user.username} size={40} />
+                  <ThemedText variant="body" color="text">{user.username}</ThemedText>
               </View>
             ))}
           </View>
 
           {/* Show All Button */}
-          {!showAll && allAttendees.length > previewLimit && (
+          {!showAll && attendees.length > previewLimit && (
             <TouchableOpacity onPress={() => setShowAll(true)} style={styles.showAllButton}>
               <ThemedText variant="body" color="accent">Show All Attendees</ThemedText>
             </TouchableOpacity>
@@ -122,10 +177,9 @@ const styles = StyleSheet.create({
   content: { padding: spacing.lg },
   title: { marginBottom: spacing.md },
   imageBox: {
-    height: 200,
+    width: '100%',
+    aspectRatio: 13 / 9,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
     marginBottom: spacing.md,
   },
   description: { marginBottom: spacing.xs },
@@ -141,13 +195,16 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.md,
   },
-  avatarBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  attendeeColumn: {
+      flexDirection: 'column',
+      gap: spacing.sm,
+      marginBottom: spacing.md,
+    },
+    attendeeItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+    },
   showAllButton: {
     alignSelf: 'flex-start',
   },

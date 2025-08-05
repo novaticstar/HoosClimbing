@@ -8,22 +8,19 @@ import { Platform } from 'react-native';
 import { HapticTab } from '../components/HapticTab';
 import { IconSymbol } from '../components/ui/IconSymbol';
 import TabBarBackground from '../components/ui/TabBarBackground';
-import FeedScreen from '../screens/FeedScreen';
-import FriendsScreen from '../screens/FriendsScreen';
-import HomeScreen from '../screens/HomeScreen';
-//import EventsScreen from '../screens/EventsScreen';
-import EventsStack from './EventsStack';
-import ProfileScreen from '../screens/ProfileScreen';
 import UploadScreen from '../screens/UploadScreen';
 import { uvaColors } from '../theme/colors';
 import { useTheme } from '../theme/ui';
+import FeedStack from './FeedStack';
+import FriendsStack from './FriendsStack';
+import HomeStack from './HomeStack';
+import ProfileStack from './ProfileStack';
 
 export type AppTabsParamList = {
   Home: undefined;
   Friends: undefined;
   Upload: undefined;
   Feed: undefined;
-  EventsTest: undefined;
   You: undefined;
 };
 
@@ -56,7 +53,7 @@ export default function AppTabs() {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeStack}
         options={{
           title: 'Home',
           tabBarIcon: ({ color }) => (
@@ -66,7 +63,7 @@ export default function AppTabs() {
       />
       <Tab.Screen
         name="Feed"
-        component={FeedScreen}
+        component={FeedStack}
         options={{
           title: 'Feed',
           tabBarIcon: ({ color }) => (
@@ -86,7 +83,7 @@ export default function AppTabs() {
       />
       <Tab.Screen
         name="Friends"
-        component={FriendsScreen}
+        component={FriendsStack}
         options={{
           title: 'Friends',
           tabBarIcon: ({ color }) => (
@@ -95,18 +92,8 @@ export default function AppTabs() {
         }}
       />
       <Tab.Screen
-        name="EventsTest"
-        component={EventsStack}
-        options={{
-            title: 'EventsTest',
-          tabBarIcon: ({ color }) => (
-          <IconSymbol size={28} name="circle.fill" color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
         name="You"
-        component={ProfileScreen}
+        component={ProfileStack}
         options={{
           title: 'You',
           tabBarIcon: ({ color }) => (

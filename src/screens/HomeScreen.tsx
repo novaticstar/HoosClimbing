@@ -4,19 +4,23 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { CompositeNavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import React, { useState } from 'react';
-import { Image, Dimensions, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Menu } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FriendCard } from '../components/FriendCard';
+import { Avatar } from '../components/Avatar';
 import { useAuth } from '../context/AuthContext';
 import { useAppStateSync } from '../hooks/useAppStateSync';
 import { useRealtimeFriends as useFriends } from '../hooks/useRealtimeFriends';
 import { useRealtimeNotifications } from '../hooks/useRealtimeNotifications';
-import { User } from '../services/friendsService';
 import { useTopPost } from '../hooks/useTopPost';
 import type { AppTabsParamList } from '../navigation/AppTabs';
+import type { HomeStackParamList } from '../navigation/HomeStack';
+import { User } from '../services/friendsService';
 import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
 export default function HomeScreen() {
   const { colors } = useTheme();
@@ -33,7 +37,12 @@ export default function HomeScreen() {
     refresh
   } = useFriends();
   const { unreadCount } = useRealtimeNotifications();
-  const navigation = useNavigation<BottomTabNavigationProp<AppTabsParamList>>();
+  const navigation = useNavigation<
+    CompositeNavigationProp<
+      StackNavigationProp<HomeStackParamList, 'HomeMain'>,
+      BottomTabNavigationProp<AppTabsParamList>
+    >
+  >();
   const [menuVisible, setMenuVisible] = useState(false);
 
   // Sync data when app comes to foreground
@@ -63,10 +72,10 @@ export default function HomeScreen() {
           <View style={styles.header}>
             <View style={styles.headerTop}>
               <View style={styles.appTitle}>
-                <ThemedText variant="h1" color="accent">
+                <ThemedText variant="h2" color="accent">
                   Hoos
                 </ThemedText>
-                <ThemedText variant="h1" color="text">
+                <ThemedText variant="h2" color="text">
                   Climbing?
                 </ThemedText>
               </View>
@@ -170,18 +179,11 @@ export default function HomeScreen() {
                   <View style={styles.feedContent}>
                     <View style={styles.feedInfo}>
                       <View style={styles.avatarRow}>
-                        {topPost.profiles?.avatar_url ? (
-                          <Image
-                            source={{ uri: topPost.profiles.avatar_url }}
-                            style={styles.avatar}
-                          />
-                        ) : (
-                          <View style={[styles.avatar, { backgroundColor: colors.surfaceVariant }]}>
-                            <ThemedText variant="caption" color="textSecondary">
-                              {topPost.profiles?.username?.charAt(0).toUpperCase() ?? '?'}
-                            </ThemedText>
-                          </View>
-                        )}
+                        <Avatar
+                          uri={topPost.profiles?.avatar_url}
+                          name={topPost.profiles?.username}
+                          size={50}
+                        />
                       {topPost.description && (
                         <ThemedText variant="body" color="textSecondary">
                           {topPost.description}
@@ -206,13 +208,13 @@ export default function HomeScreen() {
           <View style={styles.section}>
               <TouchableOpacity 
               style={styles.sectionHeader}
-              onPress={() => navigation.navigate('EventsTest')}
+              onPress={() => navigation.navigate('EventsList')}
               activeOpacity={0.7}
             >
                 <ThemedText variant="h3" color="text">Events →</ThemedText>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => navigation.navigate('EventsTest')}>
+              <TouchableOpacity onPress={() => navigation.navigate('EventsList')}>
                 <Card style={styles.feedCard}>
                   <View style={[styles.feedImage, { backgroundColor: colors.surfaceVariant }]}>
                     <ThemedText variant="h1" color="textSecondary">🏔️</ThemedText>
@@ -343,14 +345,6 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       marginBottom: spacing.md,
       gap: spacing.sm,
-    },
-    avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      justifyContent: 'center',
-      alignItems: 'center',
-      overflow: 'hidden',
     },
   playButton: {
     width: 40,

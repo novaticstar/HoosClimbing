@@ -12,6 +12,10 @@ create table if not exists public.events (
   updated_at timestamptz default now()
 );
 
+-- Add column for image link
+alter table public.events
+add column if not exists image_url text;
+
 -- Enable RLS for events table
 alter table public.events enable row level security;
 
