@@ -14,6 +14,7 @@ export interface FeedItem {
   description: string;
   image_url?: string | null;
   likes: number;
+  hasLiked: boolean;
   created_at: string;
   updated_at: string;
   profiles: {
@@ -241,26 +242,26 @@ export class FeedService {
   }
 
   /**
-   * Like a post by incrementing the like count
-   */
-  static async likePost(postId: string, currentLikes: number): Promise<boolean> {
-    try {
-      const { error } = await supabase
-        .from('feed')
-        .update({ likes: currentLikes + 1 })
-        .eq('id', postId);
+     * Update the like count for a post in the feed table
+     */
+    static async updateLikeCount(postId: string, newLikeCount: number): Promise<boolean> {
+      try {
+        const { error } = await supabase
+          .from('feed')
+          .update({ likes: newLikeCount })
+          .eq('id', postId);
 
-      if (error) {
-        console.error('Error liking post:', error);
+        if (error) {
+          console.error('Error updating like count:', error);
+          return false;
+        }
+
+        return true;
+      } catch (err) {
+        console.error('Exception updating like count:', err);
         return false;
       }
-
-      return true;
-    } catch (err) {
-      console.error('Exception liking post:', err);
-      return false;
     }
-  }
 
   /**
    * Get the most liked and most recent post

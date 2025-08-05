@@ -12,16 +12,11 @@ import { spacing, ThemedText, useTheme } from '../theme/ui';
 
 export default function FeedScreen() {
   const { colors } = useTheme();
-  const { posts, loading, error, likePost, refreshPosts } = useFeedPosts();
+  const { posts, loading, error, handleLikeToggle: toggleLike, refreshPosts } = useFeedPosts();
   const [refreshing, setRefreshing] = React.useState(false);
 
   const handleLikeToggle = async (postId: string, hasLiked: boolean) => {
-    if (hasLiked) return; // Don't allow unliking for now
-    
-    const post = posts.find(p => p.id === postId);
-    if (post) {
-      await likePost(postId, post.likes);
-    }
+    await toggleLike(postId, hasLiked);
   };
 
   const handleRefresh = async () => {
