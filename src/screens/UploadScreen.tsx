@@ -1,35 +1,55 @@
 /**
  * Upload Screen
- * Stub implementation for post upload functionality
+ * Gateway for creating posts and events
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { Alert, Dimensions, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import React, { useState } from 'react';
+import { Dimensions, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { uvaColors } from '../theme/colors';
 import { spacing, ThemedText, useTheme } from '../theme/ui';
+import CreateEventScreen from './CreateEventScreen';
+import CreatePostScreen from './CreatePostScreen';
+
+type UploadScreenNavigationProp = StackNavigationProp<any>;
 
 export default function UploadScreen() {
   const { colors } = useTheme();
+  const navigation = useNavigation<UploadScreenNavigationProp>();
+  const insets = useSafeAreaInsets();
 
   // Get screen dimensions for responsive design
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   const isSmallScreen = screenWidth < 375; // iPhone SE and smaller
   const isShortScreen = screenHeight < 667; // iPhone SE height and smaller
 
+  const [showCreatePost, setShowCreatePost] = useState(false);
+  const [showCreateEvent, setShowCreateEvent] = useState(false);
+
   const handleCreatePost = () => {
-    Alert.alert(
-      'Coming Soon!',
-      'Post creation feature is currently under development. Stay tuned!'
-    );
+    setShowCreatePost(true);
   };
 
-  const handleCreateStory = () => {
-    Alert.alert(
-      'Coming Soon!',
-      'Story creation feature is currently under development. Stay tuned!'
-    );
+  const handleCreateEvent = () => {
+    setShowCreateEvent(true);
+  };
+
+  const handlePostCreated = (postId: string) => {
+    setShowCreatePost(false);
+    // Navigate to the created post
+    navigation.navigate('Feed', {
+      screen: 'PostDetail',
+      params: { postId }
+    });
+  };
+
+  const handleEventCreated = () => {
+    setShowCreateEvent(false);
+    // Optionally navigate to events or refresh
+    navigation.navigate('Events');
   };
 
   return (
@@ -38,8 +58,9 @@ export default function UploadScreen() {
         contentContainerStyle={[
           styles.content,
           {
-            paddingTop: isShortScreen ? spacing.lg : spacing.xxl,
-            paddingHorizontal: isSmallScreen ? spacing.md : spacing.lg,
+            paddingTop: Math.max(insets.top, spacing.lg),
+            paddingBottom: Math.max(insets.bottom, spacing.xl),
+            paddingHorizontal: spacing.lg,
           }
         ]}
         showsVerticalScrollIndicator={false}
@@ -47,15 +68,14 @@ export default function UploadScreen() {
         <View style={[
           styles.header,
           { 
-            marginBottom: isShortScreen ? spacing.lg : spacing.xxl,
-            paddingHorizontal: isSmallScreen ? spacing.md : 0,
+            marginBottom: spacing.xl,
           }
         ]}>
           <ThemedText style={[
             styles.title,
             { 
-              fontSize: isSmallScreen ? 24 : isShortScreen ? 26 : 28,
-              lineHeight: isSmallScreen ? 28 : isShortScreen ? 30 : 32,
+              fontSize: isSmallScreen ? 24 : 28,
+              lineHeight: isSmallScreen ? 28 : 32,
             }
           ]}>
             Create Content
@@ -74,14 +94,14 @@ export default function UploadScreen() {
 
         <View style={[
           styles.optionsContainer,
-          { marginBottom: isShortScreen ? spacing.lg : spacing.xxl }
+          { marginBottom: spacing.xl }
         ]}>
           <TouchableOpacity
             style={[
               styles.option, 
               { 
                 backgroundColor: colors.surface,
-                padding: isSmallScreen ? spacing.md : spacing.lg,
+                padding: spacing.lg,
               }
             ]}
             onPress={handleCreatePost}
@@ -90,17 +110,17 @@ export default function UploadScreen() {
               styles.iconContainer, 
               { 
                 backgroundColor: uvaColors.cavalierOrange,
-                width: isSmallScreen ? 48 : 56,
-                height: isSmallScreen ? 48 : 56,
-                borderRadius: isSmallScreen ? 24 : 28,
+                width: 56,
+                height: 56,
+                borderRadius: 28,
               }
             ]}>
-              <Ionicons name="image" size={isSmallScreen ? 28 : 32} color="white" />
+              <Ionicons name="image" size={32} color="white" />
             </View>
             <View style={styles.optionContent}>
               <ThemedText style={[
                 styles.optionTitle,
-                { fontSize: isSmallScreen ? 16 : 18 }
+                { fontSize: 18 }
               ]}>
                 Create Post
               </ThemedText>
@@ -108,7 +128,7 @@ export default function UploadScreen() {
                 styles.optionDescription, 
                 { 
                   color: colors.textSecondary,
-                  fontSize: isSmallScreen ? 13 : 14,
+                  fontSize: 14,
                 }
               ]}>
                 Share photos and videos of your climbs
@@ -125,7 +145,7 @@ export default function UploadScreen() {
                 padding: isSmallScreen ? spacing.md : spacing.lg,
               }
             ]}
-            onPress={handleCreateStory}
+            onPress={handleCreateEvent}
           >
             <View style={[
               styles.iconContainer, 
@@ -136,14 +156,14 @@ export default function UploadScreen() {
                 borderRadius: isSmallScreen ? 24 : 28,
               }
             ]}>
-              <Ionicons name="play-circle" size={isSmallScreen ? 28 : 32} color="white" />
+              <Ionicons name="calendar" size={isSmallScreen ? 28 : 32} color="white" />
             </View>
             <View style={styles.optionContent}>
               <ThemedText style={[
                 styles.optionTitle,
                 { fontSize: isSmallScreen ? 16 : 18 }
               ]}>
-                Create Story
+                Create Event
               </ThemedText>
               <ThemedText style={[
                 styles.optionDescription, 
@@ -152,7 +172,7 @@ export default function UploadScreen() {
                   fontSize: isSmallScreen ? 13 : 14,
                 }
               ]}>
-                Share quick moments that disappear after 24 hours
+                Organize climbing sessions and meetups
               </ThemedText>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
@@ -212,6 +232,30 @@ export default function UploadScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Create Post Modal */}
+      <Modal
+        visible={showCreatePost}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <CreatePostScreen
+          onPostCreated={handlePostCreated}
+          onClose={() => setShowCreatePost(false)}
+        />
+      </Modal>
+
+      {/* Create Event Modal */}
+      <Modal
+        visible={showCreateEvent}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <CreateEventScreen
+          onEventCreated={handleEventCreated}
+          onClose={() => setShowCreateEvent(false)}
+        />
+      </Modal>
     </SafeAreaView>
   );
 }

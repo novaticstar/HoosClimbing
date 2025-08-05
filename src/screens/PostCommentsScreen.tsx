@@ -48,7 +48,7 @@ export default function PostCommentsScreen() {
 
           {/* Comments */}
           <View style={styles.content}>
-            <CommentSection postId={postId} collapsed={false} />
+            <CommentSection postId={postId} />
           </View>
         </View>
       </View>

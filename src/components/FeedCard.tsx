@@ -3,17 +3,16 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useRef, useState } from 'react';
 import {
-  Animated,
-  Dimensions,
-  Image,
-  Modal,
-  PanResponder,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View
+    Animated,
+    Dimensions,
+    Image,
+    Modal,
+    PanResponder,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
@@ -21,6 +20,7 @@ import { FeedStackParamList } from '../navigation/FeedStack';
 import { CommentService } from '../services/commentsService';
 import { spacing, ThemedText, useTheme } from '../theme/ui';
 import { CommentSection } from './CommentSection';
+import { UserTaggingInput } from './UserTaggingInput';
 
 type FeedCardNavigationProp = StackNavigationProp<FeedStackParamList>;
 
@@ -166,22 +166,12 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
 
   const handleAddComment = async () => {
     if (!commentText.trim() || !user) return;
-    const success = await CommentService.addComment(post.id, user.id, commentText.trim());
+    const success = await CommentService.addCommentWithAutoTagging(post.id, user.id, commentText.trim());
     if (success) {
       setCommentText('');
       setRefreshComments(prev => prev + 1); // Trigger refresh in CommentSection
     }
   };
-
-  // Stub images for demo purposes
-  const stubImages = [
-    'https://images.unsplash.com/photo-1544947950-fa07a98d237f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1522163182402-834f871fd851?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80'
-  ];
-
-  const imageUrl = post.image_url || stubImages[Math.floor(Math.random() * stubImages.length)];
 
   return (
     <View style={[styles.postCard, { backgroundColor: colors.background }]}>
@@ -224,12 +214,23 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
         </TouchableOpacity>
       </View>
 
-      {/* Post Image */}
-      <Image
-        source={{ uri: imageUrl }}
-        style={styles.postImage}
-        resizeMode="cover"
-      />
+      {/* Post Image - only show if image exists */}
+      {post.image_url && (
+        <Image
+          source={{ uri: post.image_url }}
+          style={styles.postImage}
+          resizeMode="cover"
+        />
+      )}
+
+      {/* Post Content - Show text posts differently */}
+      {!post.image_url && post.description && (
+        <View style={[styles.textOnlyPost, { backgroundColor: colors.surfaceVariant }]}>
+          <ThemedText variant="body" color="text" style={styles.textOnlyContent}>
+            {post.description}
+          </ThemedText>
+        </View>
+      )}
 
       {/* Actions Bar */}
       <View style={styles.actionsBar}>
@@ -389,6 +390,7 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
                     <CommentSection 
                       postId={post.id} 
                       username={post.profiles?.username}
+                      refreshTrigger={refreshComments}
                     />
                   </ScrollView>
 
@@ -401,35 +403,14 @@ export const FeedCard = ({ post, onLike }: FeedCardProps) => {
                       paddingBottom: Math.max(insets.bottom, spacing.sm)
                     }
                   ]}>
-                    <View style={[styles.inputRow, { backgroundColor: colors.surface }]}>
-                      <TextInput
-                        value={commentText}
-                        onChangeText={setCommentText}
-                        style={[styles.commentInput, { color: colors.text }]}
-                        placeholder="Add a comment..."
-                        placeholderTextColor={colors.textSecondary}
-                        multiline
-                        maxLength={500}
-                      />
-                      <TouchableOpacity 
-                        onPress={handleAddComment} 
-                        disabled={!commentText.trim()}
-                        style={[
-                          styles.postButton,
-                          { 
-                            backgroundColor: commentText.trim() ? colors.accent : colors.surfaceVariant,
-                          }
-                        ]}
-                      >
-                        <ThemedText 
-                          variant="caption" 
-                          color={commentText.trim() ? "background" : "textSecondary"}
-                          style={styles.postButtonText}
-                        >
-                          Post
-                        </ThemedText>
-                      </TouchableOpacity>
-                    </View>
+                    <UserTaggingInput
+                      value={commentText}
+                      onChangeText={setCommentText}
+                      placeholder="Add a comment..."
+                      onSend={handleAddComment}
+                      maxLength={500}
+                      multiline={true}
+                    />
                   </View>
                 </Animated.View>
             </TouchableWithoutFeedback>
@@ -593,5 +574,18 @@ const styles = StyleSheet.create({
   },
   postButtonText: {
     fontWeight: '600',
+  },
+  textOnlyPost: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.lg,
+    marginHorizontal: spacing.md,
+    borderRadius: 12,
+    minHeight: 120,
+    justifyContent: 'center',
+  },
+  textOnlyContent: {
+    fontSize: 18,
+    lineHeight: 24,
+    textAlign: 'center',
   },
 });

@@ -1,32 +1,36 @@
 /**
- * Events Overview Screen
+ * Events Overview Screen - Enhanced with real-time data and create functionality
  */
 
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
-import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, Image, View } from 'react-native';
+import React, { useState } from 'react';
+import { Image, Modal, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useEvents } from '../hooks/useEvents';
 import type { HomeStackParamList } from '../navigation/HomeStack';
 import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
-import { useEffect, useState } from 'react';
-import { EventService } from '../services/eventsService';
+import CreateEventScreen from './CreateEventScreen';
 
 type EventsScreenNavigationProp = StackNavigationProp<HomeStackParamList, 'EventsList'>;
 
 export default function EventsScreen() {
   const { colors } = useTheme();
   const navigation = useNavigation<EventsScreenNavigationProp>();
+  const { events, loading, refreshEvents } = useEvents();
+  const [refreshing, setRefreshing] = useState(false);
+  const [showCreateEvent, setShowCreateEvent] = useState(false);
 
-  const [events, setEvents] = useState<EventItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refreshEvents();
+    setRefreshing(false);
+  };
 
-  useEffect(() => {
-    EventService.getEvents().then(data => {
-      setEvents(data);
-      setLoading(false);
-    });
-  }, []);
+  const handleEventCreated = () => {
+    setShowCreateEvent(false);
+    refreshEvents();
+  };
 
   const popularEvent = events.length > 0 ? events[0] : null;
   const upcomingEvents = events.slice(1);
@@ -37,47 +41,107 @@ export default function EventsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[colors.accent]}
+            tintColor={colors.accent}
+          />
+        }
+      >
         <Container style={styles.content}>
           <View style={styles.titleRow}>
             <ThemedText variant="h2" color="text" style={styles.title}>Events</ThemedText>
 
           {/* Create Event Button */}
             <TouchableOpacity
-              onPress={() => console.log('Add Event pressed')}
+              onPress={() => setShowCreateEvent(true)}
               style={[styles.addEventButton, { backgroundColor: colors.accent }]}
             >
               <ThemedText variant="body" color="onAccent">+ Add</ThemedText>
             </TouchableOpacity>
           </View>
 
-          {/* Popular Event */}
-          {popularEvent && (
+          {loading ? (
+            <ThemedText variant="body" color="textSecondary">Loading events...</ThemedText>
+          ) : events.length === 0 ? (
+            <Card style={StyleSheet.flatten([styles.eventCard, { backgroundColor: colors.surface }])}>
+              <ThemedText variant="body" color="textSecondary" style={{ textAlign: 'center' }}>
+                No events yet. Create the first event!
+              </ThemedText>
+            </Card>
+          ) : (
             <>
-              <ThemedText variant="h3" color="text" style={styles.sectionTitle}>Popular Event</ThemedText>
-              <TouchableOpacity onPress={() => handleEventPress(popularEvent.id)}>
-                <Card style={styles.popularCard}>
-                  <ThemedText variant="h4" color="text">{popularEvent.title}</ThemedText>
-                  <ThemedText variant="body" color="textSecondary">{popularEvent.description}</ThemedText>
-                  <ThemedText variant="caption" color="accent">{popularEvent.event_date}</ThemedText>
-                </Card>
-              </TouchableOpacity>
+              {/* Popular Event */}
+              {popularEvent && (
+                <>
+                  <ThemedText variant="h3" color="text" style={styles.sectionTitle}>Featured Event</ThemedText>
+                  <TouchableOpacity onPress={() => handleEventPress(popularEvent.id)}>
+                    <Card style={StyleSheet.flatten([styles.popularCard, { backgroundColor: colors.surface }])}>
+                      {popularEvent.image_url && (
+                        <Image
+                          source={{ uri: popularEvent.image_url }}
+                          style={styles.eventImage}
+                        />
+                      )}
+                      <ThemedText variant="h4" color="text" style={styles.eventTitle}>{popularEvent.title}</ThemedText>
+                      <ThemedText variant="body" color="textSecondary" style={styles.eventDescription}>{popularEvent.description}</ThemedText>
+                      <ThemedText variant="caption" color="accent" style={styles.eventDate}>
+                        {new Date(popularEvent.event_date).toLocaleDateString()}
+                      </ThemedText>
+                      <ThemedText variant="caption" color="textSecondary">
+                        by @{popularEvent.profiles?.username || 'Unknown'}
+                      </ThemedText>
+                    </Card>
+                  </TouchableOpacity>
+                </>
+              )}
+
+              {/* Upcoming Events */}
+              {upcomingEvents.length > 0 && (
+                <>
+                  <ThemedText variant="h3" color="text" style={styles.sectionTitle}>Upcoming Events</ThemedText>
+                  {upcomingEvents.map((event) => (
+                    <TouchableOpacity key={event.id} onPress={() => handleEventPress(event.id)}>
+                      <Card style={StyleSheet.flatten([styles.eventCard, { backgroundColor: colors.surface }])}>
+                        {event.image_url && (
+                          <Image
+                            source={{ uri: event.image_url }}
+                            style={styles.eventImage}
+                          />
+                        )}
+                        <ThemedText variant="h4" color="text" style={styles.eventTitle}>{event.title}</ThemedText>
+                        <ThemedText variant="body" color="textSecondary" style={styles.eventDescription}>{event.description}</ThemedText>
+                        <ThemedText variant="caption" color="accent" style={styles.eventDate}>
+                          {new Date(event.event_date).toLocaleDateString()}
+                        </ThemedText>
+                        <ThemedText variant="caption" color="textSecondary">
+                          by @{event.profiles?.username || 'Unknown'}
+                        </ThemedText>
+                      </Card>
+                    </TouchableOpacity>
+                  ))}
+                </>
+              )}
             </>
           )}
-
-          {/* Upcoming Events */}
-          <ThemedText variant="h3" color="text" style={styles.sectionTitle}>Upcoming Events</ThemedText>
-          {upcomingEvents.map((event) => (
-            <TouchableOpacity key={event.id} onPress={() => handleEventPress(event.id)}>
-              <Card style={styles.eventCard}>
-                <ThemedText variant="h4" color="text">{event.title}</ThemedText>
-                <ThemedText variant="body" color="textSecondary">{event.description}</ThemedText>
-                <ThemedText variant="caption" color="accent">{event.event_date}</ThemedText>
-              </Card>
-            </TouchableOpacity>
-          ))}
         </Container>
       </ScrollView>
+
+      {/* Create Event Modal */}
+      <Modal
+        visible={showCreateEvent}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <CreateEventScreen
+          onEventCreated={handleEventCreated}
+          onClose={() => setShowCreateEvent(false)}
+        />
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -103,10 +167,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.lg,
   },
-
   addEventButton: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     borderRadius: 6,
   },
-   });
+  eventImage: {
+    width: '100%',
+    height: 150,
+    borderRadius: 8,
+    marginBottom: spacing.sm,
+  },
+  eventTitle: {
+    marginBottom: spacing.xs,
+  },
+  eventDescription: {
+    marginBottom: spacing.sm,
+  },
+  eventDate: {
+    marginBottom: spacing.xs,
+  },
+});

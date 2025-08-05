@@ -99,27 +99,97 @@ export class CommentService {
   }
 
   /**
-   * Add a new comment or reply to a post
+   * Add a new comment or reply to a post with optional user tagging
    */
-  static async addComment(postId: string, userId: string, text: string, parentCommentId?: string): Promise<boolean> {
+  static async addComment(
+    postId: string, 
+    userId: string, 
+    text: string, 
+    parentCommentId?: string,
+    taggedUsers?: string[]
+  ): Promise<boolean> {
     try {
-      const { error } = await supabase.from('comments').insert([
-        {
+      // Insert the comment
+      const { data: comment, error } = await supabase
+        .from('comments')
+        .insert([{
           post_id: postId,
           user_id: userId,
           text,
           parent_comment_id: parentCommentId || null,
-        },
-      ]);
+        }])
+        .select('id')
+        .single();
 
       if (error) {
         console.error('Error adding comment:', error);
         return false;
       }
 
+      // Tag users if provided
+      if (taggedUsers && taggedUsers.length > 0 && comment) {
+        const tagData = taggedUsers.map(taggedUserId => ({
+          comment_id: comment.id,
+          user_id: taggedUserId,
+          tagged_by: userId,
+        }));
+
+        const { error: tagError } = await supabase
+          .from('comment_tags')
+          .insert(tagData);
+
+        if (tagError) {
+          console.error('Error tagging users in comment:', tagError);
+          // Don't fail the comment creation if tagging fails
+        }
+      }
+
       return true;
     } catch (err) {
       console.error('Exception adding comment:', err);
+      return false;
+    }
+  }
+
+  /**
+   * Extract tagged usernames from comment text
+   */
+  static extractTaggedUsernames(text: string): string[] {
+    const mentionRegex = /@(\w+)/g;
+    const matches = text.match(mentionRegex);
+    return matches ? matches.map(match => match.substring(1)) : [];
+  }
+
+  /**
+   * Add a new comment with automatic user tagging detection
+   */
+  static async addCommentWithAutoTagging(
+    postId: string, 
+    userId: string, 
+    text: string, 
+    parentCommentId?: string
+  ): Promise<boolean> {
+    try {
+      // Extract usernames from @mentions
+      const mentionedUsernames = this.extractTaggedUsernames(text);
+      
+      let taggedUserIds: string[] = [];
+      
+      if (mentionedUsernames.length > 0) {
+        // Get user IDs for mentioned usernames
+        const { data: users, error: userError } = await supabase
+          .from('profiles')
+          .select('id')
+          .in('username', mentionedUsernames);
+
+        if (!userError && users) {
+          taggedUserIds = users.map(user => user.id);
+        }
+      }
+
+      return this.addComment(postId, userId, text, parentCommentId, taggedUserIds);
+    } catch (err) {
+      console.error('Exception in addCommentWithAutoTagging:', err);
       return false;
     }
   }

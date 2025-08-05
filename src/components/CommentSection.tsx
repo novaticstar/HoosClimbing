@@ -20,9 +20,10 @@ type CommentNavigationProp = StackNavigationProp<FeedStackParamList>;
 type Props = {
   postId: string;
   username?: string;
+  refreshTrigger?: number; // Add refresh trigger prop
 };
 
-export function CommentSection({ postId, username }: Props) {
+export function CommentSection({ postId, username, refreshTrigger }: Props) {
   const { colors } = useTheme();
   const { user } = useAuth();
   const navigation = useNavigation<CommentNavigationProp>();
@@ -99,9 +100,65 @@ export function CommentSection({ postId, username }: Props) {
 
   const handleLikeComment = async (commentId: string) => {
     if (!user) return;
+    
+    // Optimistically update the UI
+    setComments(prevComments => 
+      prevComments.map(comment => {
+        if (comment.id === commentId) {
+          return {
+            ...comment,
+            hasLiked: !comment.hasLiked,
+            likes: comment.hasLiked ? comment.likes - 1 : comment.likes + 1
+          };
+        }
+        // Also check replies
+        if (comment.replies) {
+          const updatedReplies = comment.replies.map(reply => {
+            if (reply.id === commentId) {
+              return {
+                ...reply,
+                hasLiked: !reply.hasLiked,
+                likes: reply.hasLiked ? reply.likes - 1 : reply.likes + 1
+              };
+            }
+            return reply;
+          });
+          return { ...comment, replies: updatedReplies };
+        }
+        return comment;
+      })
+    );
+
+    // Then make the API call
     const success = await CommentService.toggleCommentLike(commentId, user.id);
-    if (success) {
-      fetchComments();
+    if (!success) {
+      // Revert the optimistic update if the API call failed
+      setComments(prevComments => 
+        prevComments.map(comment => {
+          if (comment.id === commentId) {
+            return {
+              ...comment,
+              hasLiked: !comment.hasLiked,
+              likes: comment.hasLiked ? comment.likes + 1 : comment.likes - 1
+            };
+          }
+          // Also check replies
+          if (comment.replies) {
+            const updatedReplies = comment.replies.map(reply => {
+              if (reply.id === commentId) {
+                return {
+                  ...reply,
+                  hasLiked: !reply.hasLiked,
+                  likes: reply.hasLiked ? reply.likes + 1 : reply.likes - 1
+                };
+              }
+              return reply;
+            });
+            return { ...comment, replies: updatedReplies };
+          }
+          return comment;
+        })
+      );
     }
   };
 
@@ -117,7 +174,7 @@ export function CommentSection({ postId, username }: Props) {
 
   useEffect(() => {
     fetchComments();
-  }, []);
+  }, [refreshTrigger]); // Add refreshTrigger as dependency
 
   const renderComment = (comment: Comment, isReply = false) => {
     const isOwn = user && comment.user_id === user.id;

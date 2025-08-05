@@ -1,19 +1,36 @@
 /**
- * Feed Screen
+ * Feed Screen - Enhanced with real-time data and proper image handling
  */
 
 import React from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FeedCard } from '../components/FeedCard';
-import { useFeed } from '../hooks/useFeed';
+import { useFeedPosts } from '../hooks/useFeedPosts';
+import { FeedItem } from '../services/feedService';
 import { spacing, ThemedText, useTheme } from '../theme/ui';
 
 export default function FeedScreen() {
   const { colors } = useTheme();
-  const { posts, loading, refreshing, handleLikeToggle, refresh } = useFeed();
+  const { posts, loading, error, likePost, refreshPosts } = useFeedPosts();
+  const [refreshing, setRefreshing] = React.useState(false);
 
-  const renderItem = ({ item }: { item: any }) => (
+  const handleLikeToggle = async (postId: string, hasLiked: boolean) => {
+    if (hasLiked) return; // Don't allow unliking for now
+    
+    const post = posts.find(p => p.id === postId);
+    if (post) {
+      await likePost(postId, post.likes);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refreshPosts();
+    setRefreshing(false);
+  };
+
+  const renderItem = ({ item }: { item: FeedItem }) => (
     <FeedCard post={item} onLike={handleLikeToggle} />
   );
 
@@ -45,12 +62,15 @@ export default function FeedScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={refresh}
+            onRefresh={handleRefresh}
             colors={[colors.accent]}
             tintColor={colors.accent}
           />
         }
-        contentContainerStyle={posts.length === 0 && !loading ? styles.emptyContainer : undefined}
+        contentContainerStyle={[
+          posts.length === 0 && !loading ? styles.emptyContainer : styles.contentContainer,
+          { paddingBottom: spacing.xxl } // Add bottom padding for all content
+        ]}
       />
       
       {loading && (
@@ -81,6 +101,9 @@ const styles = StyleSheet.create({
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
+  },
+  contentContainer: {
+    flexGrow: 1,
   },
   loadingContainer: {
     position: 'absolute',
