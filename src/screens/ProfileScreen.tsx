@@ -7,6 +7,9 @@ import { useAuth } from '../context/AuthContext';
 import { useFriends } from '../hooks/useFriends';
 import { useProfile } from '../hooks/useProfile';
 import { Container, spacing, ThemedText, useTheme } from '../theme/ui';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigation/RootNavigator';
+
 
 // Simple User Icon Component
 const UserIcon = ({ size = 40, color = '#888' }) => (
@@ -31,7 +34,7 @@ export default function ProfileScreen() {
   const { colors } = useTheme();
   const { friends } = useFriends();
   const { user } = useAuth();
-  const navigation = useNavigation();
+  
   const { profile, userPosts, userEvents, isLoading, refreshProfile } = useProfile();
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -39,7 +42,9 @@ export default function ProfileScreen() {
   const userName = user?.user_metadata?.username || user?.email?.split('@')[0] || 'User';
   const bio = profile?.bio || 'This is a short bio about the user. It can include hobbies, interests, or anything else.';
   const profilePicture = profile?.avatar_url || user?.user_metadata?.avatar_url || null;
-
+  
+  type PostDetailScreenProp = StackNavigationProp<RootStackParamList, 'PostDetail'>;
+  const navigation = useNavigation<PostDetailScreenProp>();
   const handleProfileUpdated = (newBio: string, newAvatar: string | null) => {
     // Refresh profile data to get latest updates
     refreshProfile();
@@ -51,7 +56,7 @@ export default function ProfileScreen() {
       navigation.navigate('Home' as never);
     } else {
       // It's a post - navigate to PostDetail to view the full post
-      navigation.navigate('PostDetail' as never, { postId: item.id } as never);
+      navigation.navigate('PostDetail', { postId: item.id });
     }
   };
 
