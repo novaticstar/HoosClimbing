@@ -3,6 +3,9 @@
  * Handles database operations related to events
  */
 
+import { decode } from 'base64-arraybuffer';
+import * as FileSystem from 'expo-file-system';
+import { Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
 
 export interface EventItem {
@@ -77,16 +80,45 @@ export class EventService {
         throw new Error('User not authenticated');
       }
 
-      // Convert image URI to blob for upload
-      const response = await fetch(imageUri);
-      const blob = await response.blob();
+      console.log('Starting event image upload:', { imageUri, fileName });
 
       const filePath = `events/${user.id}/${Date.now()}-${fileName}`;
+      
+      let uploadData;
+      
+      if (Platform.OS === 'web') {
+        // Web platform - use fetch to get blob
+        const response = await fetch(imageUri);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch image: ${response.status}`);
+        }
+        uploadData = await response.blob();
+        console.log('Web blob created:', { size: uploadData.size, type: uploadData.type });
+      } else {
+        // React Native - use FileSystem + base64-arraybuffer
+        try {
+          console.log('Reading file with FileSystem...');
+          const base64 = await FileSystem.readAsStringAsync(imageUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          
+          console.log('Base64 read successfully, length:', base64.length);
+          
+          // Convert base64 to ArrayBuffer using base64-arraybuffer
+          const arrayBuffer = decode(base64);
+          console.log('ArrayBuffer created, byteLength:', arrayBuffer.byteLength);
+          
+          uploadData = arrayBuffer;
+        } catch (error) {
+          console.error('Error reading file:', error);
+          throw new Error(`Failed to read image file: ${error}`);
+        }
+      }
 
       const { data, error } = await supabase.storage
         .from('posts') // Using the same bucket for consistency
-        .upload(filePath, blob, {
-          contentType: blob.type,
+        .upload(filePath, uploadData, {
+          contentType: 'image/jpeg',
           upsert: false,
         });
 

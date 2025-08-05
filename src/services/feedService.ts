@@ -3,6 +3,7 @@
  * Handles database operations related to posts
  */
 
+import { decode } from 'base64-arraybuffer';
 import * as FileSystem from 'expo-file-system';
 import { Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
@@ -113,61 +114,49 @@ export class FeedService {
 
       console.log('Starting image upload:', { imageUri, fileName });
 
-      // For React Native, we need to handle the image URI differently
-      let imageBlob: Blob;
-      
-      if (imageUri.startsWith('file://') || imageUri.startsWith('content://')) {
-        // React Native file URI - use FormData approach
-        const formData = new FormData();
-        
-        // Create a file object for React Native
-        const fileExtension = fileName.split('.').pop() || 'jpg';
-        const mimeType = `image/${fileExtension === 'jpg' ? 'jpeg' : fileExtension}`;
-        
-        formData.append('file', {
-          uri: imageUri,
-          type: mimeType,
-          name: fileName,
-        } as any);
-
-        // Convert FormData to blob for Supabase
-        const response = await fetch(imageUri);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch image: ${response.status}`);
-        }
-        imageBlob = await response.blob();
-      } else {
-        // Web or regular URL
-        const response = await fetch(imageUri);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch image: ${response.status}`);
-        }
-        imageBlob = await response.blob();
-      }
-
-      console.log('Image blob created:', { 
-        size: imageBlob.size, 
-        type: imageBlob.type 
-      });
-
-      // Ensure we have a valid blob
-      if (imageBlob.size === 0) {
-        throw new Error('Image blob is empty');
-      }
-
       const filePath = `${user.id}/${Date.now()}-${fileName}`;
+      let uploadData;
+
+      if (Platform.OS === 'web') {
+        // Web platform - use fetch to get blob
+        const response = await fetch(imageUri);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch image: ${response.status}`);
+        }
+        uploadData = await response.blob();
+        console.log('Web blob created:', { size: uploadData.size, type: uploadData.type });
+      } else {
+        // React Native - use FileSystem + base64-arraybuffer
+        try {
+          console.log('Reading file with FileSystem...');
+          const base64 = await FileSystem.readAsStringAsync(imageUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          
+          console.log('Base64 read successfully, length:', base64.length);
+          
+          // Convert base64 to ArrayBuffer using base64-arraybuffer
+          const arrayBuffer = decode(base64);
+          console.log('ArrayBuffer created, byteLength:', arrayBuffer.byteLength);
+          
+          uploadData = arrayBuffer;
+        } catch (error) {
+          console.error('Error reading file:', error);
+          throw new Error(`Failed to read image file: ${error}`);
+        }
+      }
 
       console.log('Uploading to path:', filePath);
 
       const { data, error } = await supabase.storage
         .from('posts')
-        .upload(filePath, imageBlob, {
-          contentType: imageBlob.type || 'image/jpeg',
+        .upload(filePath, uploadData, {
+          contentType: Platform.OS === 'web' ? (uploadData as Blob).type || 'image/jpeg' : 'image/jpeg',
           upsert: false,
         });
 
       if (error) {
-        console.error('Error uploading image:', error);
+        console.error('Supabase upload error:', error);
         return null;
       }
 

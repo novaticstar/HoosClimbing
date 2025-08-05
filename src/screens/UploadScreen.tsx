@@ -48,8 +48,8 @@ export default function UploadScreen() {
 
   const handleEventCreated = () => {
     setShowCreateEvent(false);
-    // Optionally navigate to events or refresh
-    navigation.navigate('Events');
+    // Navigate back to Home tab since Events isn't in the tab navigation
+    navigation.navigate('Home');
   };
 
   return (
