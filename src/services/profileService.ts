@@ -225,7 +225,6 @@ export class ProfileService {
           description,
           image_url,
           event_date,
-          location,
           created_at,
           profiles!inner(username, avatar_url)
         `)

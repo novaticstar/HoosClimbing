@@ -7,6 +7,9 @@ import { useAuth } from '../context/AuthContext';
 import { useFriends } from '../hooks/useFriends';
 import { useProfile } from '../hooks/useProfile';
 import { Container, spacing, ThemedText, useTheme } from '../theme/ui';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigation/RootNavigator';
+
 
 // Simple User Icon Component
 const UserIcon = ({ size = 40, color = '#888' }) => (
@@ -31,15 +34,18 @@ export default function ProfileScreen() {
   const { colors } = useTheme();
   const { friends } = useFriends();
   const { user } = useAuth();
-  const navigation = useNavigation();
+  
   const { profile, userPosts, userEvents, isLoading, refreshProfile } = useProfile();
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState<'Posts' | 'Events'>('Posts');
 
   const userName = user?.user_metadata?.username || user?.email?.split('@')[0] || 'User';
   const bio = profile?.bio || 'This is a short bio about the user. It can include hobbies, interests, or anything else.';
   const profilePicture = profile?.avatar_url || user?.user_metadata?.avatar_url || null;
 
+  type PostDetailScreenProp = StackNavigationProp<RootStackParamList, 'PostDetail'>;
+  const navigation = useNavigation<PostDetailScreenProp>();
   const handleProfileUpdated = (newBio: string, newAvatar: string | null) => {
     // Refresh profile data to get latest updates
     refreshProfile();
@@ -51,12 +57,12 @@ export default function ProfileScreen() {
       navigation.navigate('Home' as never);
     } else {
       // It's a post - navigate to PostDetail to view the full post
-      navigation.navigate('PostDetail' as never, { postId: item.id } as never);
+      navigation.navigate('PostDetail', { postId: item.id });
     }
   };
 
   // Combine posts and events, sorted by creation date
-  const allContent = [...userPosts, ...userEvents]
+  const allContent = (activeTab === 'Posts' ? userPosts : userEvents)
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 12); // Show max 12 items
 
@@ -119,6 +125,27 @@ export default function ProfileScreen() {
               Edit Profile
             </ThemedText>
           </TouchableOpacity>
+
+          {/* Horizontal Tab Bar */}
+          <View style={styles.tabBar}>
+            <TouchableOpacity
+              style={[styles.tabItem, activeTab === 'Posts' && styles.activeTab]}
+              onPress={() => setActiveTab('Posts')}
+            >
+              <ThemedText variant="body" color={activeTab === 'Posts' ? 'text' : 'textSecondary'}>
+                Posts
+              </ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tabItem, activeTab === 'Events' && styles.activeTab]}
+              onPress={() => setActiveTab('Events')}
+            >
+              <ThemedText variant="body" color={activeTab === 'Events' ? 'text' : 'textSecondary'}>
+                Events
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+
 
           {/* Content Grid - Posts and Events */}
           <View style={styles.postsGrid}>
@@ -243,5 +270,24 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingVertical: spacing.xl,
     alignItems: 'center',
+  },
+  tabBar: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+    borderBottomWidth: 1,
+    borderColor: '#ccc',
+  },
+  
+  tabItem: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    marginHorizontal: spacing.sm,
+    borderBottomWidth: 2,
+    borderColor: 'transparent',
+  },
+  
+  activeTab: {
+    borderColor: '#000', // Use theme color if desired
   },
 });
