@@ -295,18 +295,22 @@ function getMimeType(uri: string) {
             };
             const formData = new FormData();
             formData.append('file', file as any);
+
             const sessionResult = await supabase.auth.getSession();
             const accessToken = sessionResult.data?.session?.access_token;
             console.log("Upload info", {
+              imageUri,
               filePath,
               projectUrl: `https://lszaovkgknpurhsjksqu.supabase.co`,
               accessToken: accessToken?.slice(0, 10) + '...',
             });
+            console.log("imageURI", imageUri);
             const res = await fetch(`${supabaseUrl}storage/v1/object/profile-pictures/${filePath}`, {
               method: 'POST',
               headers: {
                 Authorization: `Bearer ${accessToken}`,
                 apikey: supabaseAnonKey,
+                
               },
               body: formData,
             });
