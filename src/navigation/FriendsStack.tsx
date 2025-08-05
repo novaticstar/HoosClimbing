@@ -1,21 +1,16 @@
 /**
- * Feed Stack Navigator
- * Handles navigation within the Feed tab including user profiles
+ * Friends Stack Navigator
+ * Handles navigation within the Friends tab
  */
 
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
-import FeedScreen from '../screens/FeedScreen';
+import FriendsScreen from '../screens/FriendsScreen';
 import PostCommentsScreen from '../screens/PostCommentsScreen';
 import PostDetailScreen from '../screens/PostDetailScreen';
-import UserProfileScreen from '../screens/UserProfileScreen';
 
-export type FeedStackParamList = {
-  FeedMain: undefined;
-  UserProfile: {
-    userId: string;
-    username?: string;
-  };
+export type FriendsStackParamList = {
+  FriendsMain: undefined;
   PostDetail: {
     postId: string;
   };
@@ -25,13 +20,12 @@ export type FeedStackParamList = {
   };
 };
 
-const Stack = createStackNavigator<FeedStackParamList>();
+const Stack = createStackNavigator<FriendsStackParamList>();
 
-export default function FeedStack() {
+export default function FriendsStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="FeedMain" component={FeedScreen} />
-      <Stack.Screen name="UserProfile" component={UserProfileScreen} />
+      <Stack.Screen name="FriendsMain" component={FriendsScreen} />
       <Stack.Screen name="PostDetail" component={PostDetailScreen} />
       <Stack.Screen name="PostComments" component={PostCommentsScreen} />
     </Stack.Navigator>

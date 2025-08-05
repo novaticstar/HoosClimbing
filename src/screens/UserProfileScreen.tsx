@@ -163,7 +163,10 @@ export default function UserProfileScreen() {
   });
 
   const renderPostItem = ({ item }: { item: UserPost }) => (
-    <TouchableOpacity style={styles.postItem}>
+    <TouchableOpacity 
+      style={styles.postItem}
+      onPress={() => navigation.navigate('PostDetail' as never, { postId: item.id } as never)}
+    >
       {item.image_url ? (
         <Image source={{ uri: item.image_url }} style={styles.postImage} />
       ) : (
@@ -268,10 +271,6 @@ export default function UserProfileScreen() {
             <View style={styles.statItem}>
               <ThemedText variant="h3" color="text">{friendCount}</ThemedText>
               <ThemedText variant="caption" color="textSecondary">Friends</ThemedText>
-            </View>
-            <View style={styles.statItem}>
-              <ThemedText variant="h3" color="text">0</ThemedText>
-              <ThemedText variant="caption" color="textSecondary">Climbs</ThemedText>
             </View>
           </View>
 
@@ -403,6 +402,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: '#e0e0e0',
     marginBottom: spacing.lg,
+    maxWidth: 300,
+    alignSelf: 'center',
   },
   statItem: {
     alignItems: 'center',

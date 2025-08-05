@@ -1,14 +1,18 @@
 /**
  * User Profile View Screen
  * Used to view other users' profiles from the Friends screen
+ * Updated to match the better UserProfileScreen design
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 import { User } from '../services/friendsService';
-import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
+import { Container, spacing, ThemedText, useTheme } from '../theme/ui';
 
 interface UserProfileViewProps {
   user: User;
@@ -32,230 +36,209 @@ export default function UserProfileView({
   friendCount = 0
 }: UserProfileViewProps) {
   const { colors } = useTheme();
-  const [imageError, setImageError] = useState(false);
+  const { user: currentUser } = useAuth();
+  const navigation = useNavigation();
+  const [userPosts, setUserPosts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [actualFriendCount, setActualFriendCount] = useState(friendCount);
+
+  useEffect(() => {
+    fetchUserData();
+  }, [user.id]);
+
+  const fetchUserData = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch user's posts
+      const { data: posts } = await supabase
+        .from('feed')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(12);
+
+      // Fetch friend count
+      const { count } = await supabase
+        .from('friends')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'accepted');
+
+      setUserPosts(posts || []);
+      setActualFriendCount(count || 0);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getDisplayName = () => {
     return user.username || user.full_name || (user.email ? user.email.split('@')[0] : 'Unknown User');
   };
 
-  const getAvatarText = () => {
-    const name = getDisplayName();
-    const firstChar = name.charAt(0).toUpperCase();
-    return firstChar || '?';
-  };
-
-  const handleAddFriend = async () => {
-    if (onAddFriend) {
-      const success = await onAddFriend(user.id);
-      if (success) {
-        // The parent component should handle UI updates
-      }
-    }
-  };
-
-  const handleAcceptFriend = async () => {
-    if (onAcceptFriend) {
-      const success = await onAcceptFriend(user.id);
-      if (success) {
-        // The parent component should handle UI updates
-      }
-    }
-  };
-
-  const handleCancelRequest = async () => {
-    if (onCancelRequest) {
-      const success = await onCancelRequest(user.id);
-      if (success) {
-        // The parent component should handle UI updates
-      }
-    }
-  };
-
-  const handleRemoveFriend = async () => {
-    if (onRemoveFriend) {
-      const success = await onRemoveFriend(user.id);
-      if (success) {
-        // The parent component should handle UI updates
-      }
-    }
-  };
-
-  const handleDeclineRequest = async () => {
-    // Declining a friend request is the same as removing the friendship
-    if (onRemoveFriend) {
-      const success = await onRemoveFriend(user.id);
-      if (success) {
-        // The parent component should handle UI updates
-      }
-    }
-  };
-
-  const renderActionButtons = () => {
+  const getFriendButtonText = () => {
     switch (friendshipStatus) {
-      case 'friend':
-        return (
-          <>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.primaryButton, { backgroundColor: colors.primary }]}
-            >
-              <Ionicons name="chatbubble" size={20} color={colors.onPrimary} />
-              <ThemedText variant="body" color="onPrimary" style={styles.buttonText}>
-                Message
-              </ThemedText>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
-              onPress={handleRemoveFriend}
-            >
-              <Ionicons name="person-remove" size={20} color={colors.error} />
-              <ThemedText variant="body" color="error" style={styles.buttonText}>
-                Unfriend
-              </ThemedText>
-            </TouchableOpacity>
-          </>
-        );
-      case 'pending':
-        return (
-          <>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.primaryButton, { backgroundColor: colors.success }]}
-              onPress={handleAcceptFriend}
-            >
-              <Ionicons name="checkmark" size={20} color={colors.onPrimary} />
-              <ThemedText variant="body" color="onPrimary" style={styles.buttonText}>
-                Accept
-              </ThemedText>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
-              onPress={handleDeclineRequest}
-            >
-              <Ionicons name="close" size={20} color={colors.text} />
-              <ThemedText variant="body" color="text" style={styles.buttonText}>
-                Decline
-              </ThemedText>
-            </TouchableOpacity>
-          </>
-        );
-      case 'sent':
-        return (
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.secondaryButton, { borderColor: colors.border }]}
-            onPress={handleCancelRequest}
-          >
-            <Ionicons name="close" size={20} color={colors.text} />
-            <ThemedText variant="body" color="text" style={styles.buttonText}>
-              Cancel Request
-            </ThemedText>
-          </TouchableOpacity>
-        );
+      case 'friend': return 'Remove Friend';
+      case 'pending': return 'Accept Request';
+      case 'sent': return 'Request Sent';
+      default: return 'Add Friend';
+    }
+  };
+
+  const handleFriendAction = async () => {
+    switch (friendshipStatus) {
       case 'none':
-      default:
-        return (
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.primaryButton, { backgroundColor: colors.primary }]}
-            onPress={handleAddFriend}
-          >
-            <Ionicons name="person-add" size={20} color={colors.onPrimary} />
-            <ThemedText variant="body" color="onPrimary" style={styles.buttonText}>
-              Add Friend
-            </ThemedText>
-          </TouchableOpacity>
-        );
+        if (onAddFriend) await onAddFriend(user.id);
+        break;
+      case 'friend':
+        if (onRemoveFriend) await onRemoveFriend(user.id);
+        break;
+      case 'pending':
+        if (onAcceptFriend) await onAcceptFriend(user.id);
+        break;
+      case 'sent':
+        if (onCancelRequest) await onCancelRequest(user.id);
+        break;
+    }
+  };
+
+  const handlePostPress = (post: any) => {
+    // Navigate to PostDetail to view the full post
+    try {
+      navigation.navigate('PostDetail' as never, { postId: post.id } as never);
+    } catch (error) {
+      console.log('Navigation error:', error);
     }
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <Ionicons name="close" size={24} color={colors.text} />
+      {/* Header */}
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <TouchableOpacity onPress={onClose} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <ThemedText variant="h3" color="text">
-          Profile
+        <ThemedText variant="h3" color="text" style={styles.headerTitle}>
+          {getDisplayName()}
         </ThemedText>
-        <View style={styles.placeholder} />
+        <View style={styles.headerSpacer} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Container style={styles.profileContainer}>
-          {/* Profile Header */}
-          <View style={styles.profileHeader}>
-            <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-              {user.avatar_url && user.avatar_url.trim() && user.avatar_url.trim() !== '' && !imageError ? (
-                <Image
-                  source={{ uri: user.avatar_url }}
-                  style={styles.avatarImage}
-                  onError={() => {
-                    setImageError(true);
-                  }}
-                />
-              ) : (
-                <ThemedText variant="h1" color="onPrimary">
-                  {getAvatarText()}
+      <ScrollView style={styles.content}>
+        <Container>
+          {/* Profile Section */}
+          <View style={styles.profileSection}>
+            {user.avatar_url ? (
+              <Image
+                source={{ uri: user.avatar_url }}
+                style={styles.avatar}
+              />
+            ) : (
+              <View style={[styles.avatar, { backgroundColor: colors.surfaceVariant }]}>
+                <ThemedText variant="h1" color="textSecondary">
+                  {getDisplayName().charAt(0).toUpperCase()}
                 </ThemedText>
-              )}
-            </View>
-            <View style={styles.userInfo}>
-              <ThemedText variant="h2" color="text" style={styles.displayName}>
-                {getDisplayName()}
+              </View>
+            )}
+
+            <ThemedText variant="h2" color="text" style={styles.displayName}>
+              {getDisplayName()}
+            </ThemedText>
+            
+            {user.username && user.username !== getDisplayName() && (
+              <ThemedText variant="body" color="textSecondary" style={styles.username}>
+                @{user.username}
               </ThemedText>
-              {user.full_name && user.full_name !== getDisplayName() && (
-                <ThemedText variant="body" color="textSecondary">
-                  {user.full_name}
-                </ThemedText>
-              )}
-            </View>
+            )}
+
+            {user.bio && (
+              <ThemedText variant="body" color="text" style={styles.bio}>
+                {user.bio}
+              </ThemedText>
+            )}
+
+            <ThemedText variant="caption" color="textSecondary" style={styles.joinDate}>
+              Joined {new Date(user.created_at || Date.now()).toLocaleDateString()}
+            </ThemedText>
           </View>
 
-          {/* Stats */}
-          <View style={styles.statsContainer}>
-            <Card style={styles.statCard}>
-              <ThemedText variant="h3" color="accent">
-                {friendCount}
-              </ThemedText>
-              <ThemedText variant="body" color="textSecondary">
-                Friends
-              </ThemedText>
-            </Card>
-            <Card style={styles.statCard}>
-              <ThemedText variant="h3" color="success">
-                0
-              </ThemedText>
-              <ThemedText variant="body" color="textSecondary">
-                Posts
-              </ThemedText>
-            </Card>
-          </View>
-
-          {/* Bio Section */}
-          <Card style={styles.bioCard}>
-            <ThemedText variant="h4" color="text" style={styles.sectionTitle}>
-              About
-            </ThemedText>
-            <ThemedText variant="body" color="textSecondary">
-              {user.bio || "This climber hasn't added a bio yet."}
-            </ThemedText>
-          </Card>
-
-          {/* Recent Activity */}
-          <Card style={styles.activityCard}>
-            <ThemedText variant="h4" color="text" style={styles.sectionTitle}>
-              Recent Activity
-            </ThemedText>
-            <View style={styles.emptyState}>
-              <Ionicons name="camera-outline" size={48} color={colors.textSecondary} />
-              <ThemedText variant="body" color="textSecondary" style={styles.emptyText}>
-                No recent climbing activity
-              </ThemedText>
+          {/* Stats Section */}
+          <View style={styles.statsSection}>
+            <View style={styles.statItem}>
+              <ThemedText variant="h3" color="text">{userPosts.length}</ThemedText>
+              <ThemedText variant="caption" color="textSecondary">Posts</ThemedText>
             </View>
-          </Card>
+            <View style={styles.statItem}>
+              <ThemedText variant="h3" color="text">{actualFriendCount}</ThemedText>
+              <ThemedText variant="caption" color="textSecondary">Friends</ThemedText>
+            </View>
+          </View>
 
           {/* Action Buttons */}
-          <View style={styles.actionButtons}>
-            {renderActionButtons()}
+          {currentUser?.id !== user.id && (
+            <View style={styles.actionSection}>
+              <TouchableOpacity 
+                style={[
+                  styles.actionButton, 
+                  { backgroundColor: friendshipStatus === 'friend' ? colors.surface : colors.accent }
+                ]}
+                onPress={handleFriendAction}
+                disabled={friendshipStatus === 'sent'}
+              >
+                <ThemedText 
+                  variant="body" 
+                  color={friendshipStatus === 'friend' ? "text" : "surface"} 
+                  style={styles.actionButtonText}
+                >
+                  {getFriendButtonText()}
+                </ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}>
+                <ThemedText variant="body" color="text" style={styles.actionButtonText}>
+                  Message
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Posts Grid */}
+          <View style={styles.postsSection}>
+            <ThemedText variant="h3" color="text" style={styles.sectionTitle}>
+              Posts
+            </ThemedText>
+            
+            {isLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={colors.accent} />
+              </View>
+            ) : userPosts.length > 0 ? (
+              <View style={styles.postsGrid}>
+                {userPosts.map((post) => (
+                  <TouchableOpacity 
+                    key={post.id} 
+                    style={styles.postItem}
+                    onPress={() => handlePostPress(post)}
+                  >
+                    {post.image_url ? (
+                      <Image source={{ uri: post.image_url }} style={styles.postImage} />
+                    ) : (
+                      <View style={[styles.postImage, styles.noImagePost, { backgroundColor: colors.surface }]}>
+                        <ThemedText variant="caption" color="textSecondary">
+                          📝
+                        </ThemedText>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : (
+              <View style={styles.emptyState}>
+                <ThemedText variant="body" color="textSecondary">
+                  No posts yet
+                </ThemedText>
+              </View>
+            )}
           </View>
         </Container>
       </ScrollView>
@@ -274,98 +257,114 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
-  closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+  backButton: {
+    padding: spacing.sm,
+    marginLeft: -spacing.sm,
   },
-  placeholder: {
-    width: 40,
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  headerSpacer: {
+    width: 44,
   },
   content: {
     flex: 1,
   },
-  profileContainer: {
-    padding: spacing.lg,
-  },
-  profileHeader: {
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-    overflow: 'hidden',
-  },
-  avatarImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 50,
-  },
-  userInfo: {
-    alignItems: 'center',
-  },
-  displayName: {
-    marginBottom: spacing.xs,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    marginBottom: spacing.xl,
-  },
-  statCard: {
-    flex: 1,
-    alignItems: 'center',
-    padding: spacing.lg,
-  },
-  bioCard: {
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-  },
-  activityCard: {
-    padding: spacing.lg,
-    marginBottom: spacing.xl,
-  },
-  sectionTitle: {
-    marginBottom: spacing.md,
-  },
-  emptyState: {
+  profileSection: {
     alignItems: 'center',
     paddingVertical: spacing.xl,
   },
-  emptyText: {
-    marginTop: spacing.md,
-    textAlign: 'center',
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  actionButtons: {
+  displayName: {
+    fontSize: 28,
+    fontWeight: '700',
+    marginBottom: spacing.xs,
+  },
+  username: {
+    fontSize: 16,
+    marginBottom: spacing.md,
+  },
+  bio: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.lg,
+    lineHeight: 22,
+  },
+  joinDate: {
+    fontSize: 14,
+  },
+  statsSection: {
     flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    maxWidth: 300,
+    alignSelf: 'center',
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  actionSection: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
     gap: spacing.md,
   },
   actionButton: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
     borderRadius: 12,
-    gap: spacing.sm,
+    alignItems: 'center',
   },
-  messageButton: {},
-  primaryButton: {},
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-  },
-  buttonText: {
+  actionButtonText: {
+    fontSize: 16,
     fontWeight: '600',
+  },
+  postsSection: {
+    paddingTop: spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: spacing.lg,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+  },
+  postsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 2,
+  },
+  postItem: {
+    width: '32%',
+    aspectRatio: 1,
+    marginBottom: 2,
+  },
+  postImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+  },
+  noImagePost: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
   },
 });

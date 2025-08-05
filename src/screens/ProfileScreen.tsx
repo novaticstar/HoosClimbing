@@ -1,3 +1,4 @@
+import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,6 +31,7 @@ export default function ProfileScreen() {
   const { colors } = useTheme();
   const { friends } = useFriends();
   const { user } = useAuth();
+  const navigation = useNavigation();
   const { profile, userPosts, userEvents, isLoading, refreshProfile } = useProfile();
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -41,6 +43,16 @@ export default function ProfileScreen() {
   const handleProfileUpdated = (newBio: string, newAvatar: string | null) => {
     // Refresh profile data to get latest updates
     refreshProfile();
+  };
+
+  const handleContentPress = (item: any) => {
+    if (item.title) {
+      // It's an event - for now navigate to Home tab (future: navigate to EventDetails)
+      navigation.navigate('Home' as never);
+    } else {
+      // It's a post - navigate to PostDetail to view the full post
+      navigation.navigate('PostDetail' as never, { postId: item.id } as never);
+    }
   };
 
   // Combine posts and events, sorted by creation date
@@ -117,7 +129,11 @@ export default function ProfileScreen() {
               ))
             ) : allContent.length > 0 ? (
               allContent.map((item, index) => (
-                <TouchableOpacity key={item.id || index} style={styles.postItem}>
+                <TouchableOpacity 
+                  key={item.id || index} 
+                  style={styles.postItem}
+                  onPress={() => handleContentPress(item)}
+                >
                   {item.image_url ? (
                     <Image source={{ uri: item.image_url }} style={styles.postImage} />
                   ) : (
