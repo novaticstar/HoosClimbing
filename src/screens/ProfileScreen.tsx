@@ -1,41 +1,52 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import EditProfileModal from '../components/EditProfileModal';
 import { useAuth } from '../context/AuthContext';
 import { useFriends } from '../hooks/useFriends';
-import { ProfileService } from '../services/profileService';
+import { useProfile } from '../hooks/useProfile';
 import { Container, spacing, ThemedText, useTheme } from '../theme/ui';
+
+// Simple User Icon Component
+const UserIcon = ({ size = 40, color = '#888' }) => (
+  <View style={{
+    width: size,
+    height: size,
+    borderRadius: size / 2,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  }}>
+    <ThemedText style={{ 
+      fontSize: size * 0.5, 
+      color,
+    }}>
+      👤
+    </ThemedText>
+  </View>
+);
 
 export default function ProfileScreen() {
   const { colors } = useTheme();
   const { friends } = useFriends();
   const { user } = useAuth();
-
-  const mockPosts = Array(12).fill(require('../../assets/images/splash-icon.png')); // Mock post images
+  const { profile, userPosts, userEvents, isLoading, refreshProfile } = useProfile();
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [bio, setBio] = useState('This is a short bio about the user. It can include hobbies, interests, or anything else.');
-  const [profilePicture, setProfilePicture] = useState<string | null>(
-    user?.user_metadata?.avatar_url || null
-  );
 
-  useEffect(() => {
-    async function loadProfile() {
-      const profile = await ProfileService.getUserProfile();
-      if (profile) {
-        setBio(profile.bio || 'This is a short bio about the user. It can include hobbies, interests, or anything else.');
-        setProfilePicture(profile.avatar_url || user?.user_metadata?.avatar_url || null);
-      }
-    }
-
-    loadProfile();
-  }, [user]);
+  const userName = user?.user_metadata?.username || user?.email?.split('@')[0] || 'User';
+  const bio = profile?.bio || 'This is a short bio about the user. It can include hobbies, interests, or anything else.';
+  const profilePicture = profile?.avatar_url || user?.user_metadata?.avatar_url || null;
 
   const handleProfileUpdated = (newBio: string, newAvatar: string | null) => {
-    setBio(newBio);
-    setProfilePicture(newAvatar);
+    // Refresh profile data to get latest updates
+    refreshProfile();
   };
+
+  // Combine posts and events, sorted by creation date
+  const allContent = [...userPosts, ...userEvents]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 12); // Show max 12 items
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -43,18 +54,18 @@ export default function ProfileScreen() {
         <Container style={styles.content}>
           {/* Profile Header */}
           <View style={styles.header}>
-            <Image
-              source={
-                profilePicture
-                  ? { uri: profilePicture }
-                  : require('../../assets/images/splash-icon.png')
-              }
-              style={styles.profilePicture}
-            />
+            {profilePicture ? (
+              <Image
+                source={{ uri: profilePicture }}
+                style={styles.profilePicture}
+              />
+            ) : (
+              <UserIcon size={80} />
+            )}
             
             <View style={styles.headerInfo}>
               <ThemedText variant="h3" color="text">
-                {user?.user_metadata?.username || 'Username'}
+                {userName}
               </ThemedText>
               <ThemedText variant="body" color="textSecondary">
                 {bio}
@@ -66,7 +77,7 @@ export default function ProfileScreen() {
           <View style={styles.stats}>
             <View style={styles.statItem}>
               <ThemedText variant="h3" color="text">
-                0
+                {userPosts.length}
               </ThemedText>
               <ThemedText variant="body" color="textSecondary">
                 Posts
@@ -80,6 +91,14 @@ export default function ProfileScreen() {
                 Friends
               </ThemedText>
             </View>
+            <View style={styles.statItem}>
+              <ThemedText variant="h3" color="text">
+                {userEvents.length}
+              </ThemedText>
+              <ThemedText variant="body" color="textSecondary">
+                Events
+              </ThemedText>
+            </View>
           </View>
 
           {/* Edit Profile Button */}
@@ -89,11 +108,34 @@ export default function ProfileScreen() {
             </ThemedText>
           </TouchableOpacity>
 
-          {/* Posts Grid */}
+          {/* Content Grid - Posts and Events */}
           <View style={styles.postsGrid}>
-            {mockPosts.map((post, index) => (
-              <Image key={index} source={post} style={styles.postItem} />
-            ))}
+            {isLoading ? (
+              // Loading placeholder
+              Array(6).fill(0).map((_, index) => (
+                <View key={`loading-${index}`} style={[styles.postItem, styles.loadingItem, { backgroundColor: colors.surface }]} />
+              ))
+            ) : allContent.length > 0 ? (
+              allContent.map((item, index) => (
+                <TouchableOpacity key={item.id || index} style={styles.postItem}>
+                  {item.image_url ? (
+                    <Image source={{ uri: item.image_url }} style={styles.postImage} />
+                  ) : (
+                    <View style={[styles.postImage, styles.noImagePost, { backgroundColor: colors.surface }]}>
+                      <ThemedText variant="caption" color="textSecondary" style={styles.noImageText}>
+                        {item.title ? '📅' : '📝'}
+                      </ThemedText>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={styles.emptyState}>
+                <ThemedText variant="body" color="textSecondary">
+                  No posts yet. Start sharing your climbing adventures!
+                </ThemedText>
+              </View>
+            )}
           </View>
         </Container>
       </ScrollView>
@@ -104,6 +146,7 @@ export default function ProfileScreen() {
         onClose={() => setModalVisible(false)}
         currentBio={bio}
         currentAvatar={profilePicture}
+        userName={userName}
         onProfileUpdated={handleProfileUpdated}
       />
     </SafeAreaView>
@@ -159,5 +202,30 @@ const styles = StyleSheet.create({
     aspectRatio: 1, // Ensures square images
     marginBottom: spacing.sm,
     borderRadius: 8,
+    overflow: 'hidden',
+  },
+  loadingItem: {
+    backgroundColor: '#f0f0f0',
+  },
+  postImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
+  },
+  noImagePost: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 8,
+  },
+  noImageText: {
+    fontSize: 24,
+    textAlign: 'center',
+  },
+  emptyState: {
+    width: '100%',
+    paddingVertical: spacing.xl,
+    alignItems: 'center',
   },
 });

@@ -16,11 +16,44 @@ import { useAuth } from '../context/AuthContext';
 import { ProfileService } from '../services/profileService';
 import { spacing, ThemedText, useTheme } from '../theme/ui';
 
+// Simple User Icon Component
+const UserIcon = ({ size = 60, color = '#888' }) => (
+  <View style={{
+    width: size,
+    height: size,
+    borderRadius: size / 2,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#ddd',
+    borderStyle: 'dashed'
+  }}>
+    <Text style={{ 
+      fontSize: size * 0.4, 
+      color, 
+      fontWeight: 'bold',
+      textAlign: 'center'
+    }}>
+      👤
+    </Text>
+    <Text style={{ 
+      fontSize: size * 0.15, 
+      color: '#aaa',
+      marginTop: 2,
+      textAlign: 'center'
+    }}>
+      Tap to add
+    </Text>
+  </View>
+);
+
 interface EditProfileModalProps {
   visible: boolean;
   onClose: () => void;
   currentBio: string;
   currentAvatar: string | null;
+  userName: string;
   onProfileUpdated: (newBio: string, newAvatar: string | null) => void;
 }
 
@@ -29,6 +62,7 @@ export default function EditProfileModal({
   onClose,
   currentBio,
   currentAvatar,
+  userName,
   onProfileUpdated,
 }: EditProfileModalProps) {
   const { colors } = useTheme();
@@ -120,7 +154,7 @@ export default function EditProfileModal({
           {/* Header */}
           <View style={styles.header}>
             <ThemedText variant="h2" color="text" style={styles.title}>
-              [User]
+              {userName}
             </ThemedText>
           </View>
 
@@ -130,11 +164,7 @@ export default function EditProfileModal({
               {displayAvatar ? (
                 <Image source={{ uri: displayAvatar }} style={styles.profileImage} />
               ) : (
-                <View style={[styles.profileImage, styles.placeholderImage, { backgroundColor: colors.surface }]}>
-                  <ThemedText variant="body" color="textSecondary">
-                    Tap to add photo
-                  </ThemedText>
-                </View>
+                <UserIcon size={120} />
               )}
             </TouchableOpacity>
 

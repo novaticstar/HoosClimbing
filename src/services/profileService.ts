@@ -164,4 +164,83 @@ export class ProfileService {
       return null;
     }
   }
+
+  /**
+   * Get user's posts
+   */
+  static async getUserPosts(userId?: string): Promise<any[] | null> {
+    try {
+      let targetUserId = userId;
+      
+      if (!targetUserId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return null;
+        targetUserId = user.id;
+      }
+
+      const { data, error } = await supabase
+        .from('feed')
+        .select(`
+          id,
+          description,
+          image_url,
+          likes,
+          created_at,
+          updated_at,
+          profiles!inner(username, avatar_url)
+        `)
+        .eq('user_id', targetUserId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching user posts:', error);
+        return null;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error in getUserPosts:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get user's events
+   */
+  static async getUserEvents(userId?: string): Promise<any[] | null> {
+    try {
+      let targetUserId = userId;
+      
+      if (!targetUserId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return null;
+        targetUserId = user.id;
+      }
+
+      const { data, error } = await supabase
+        .from('events')
+        .select(`
+          id,
+          title,
+          description,
+          image_url,
+          event_date,
+          location,
+          created_at,
+          profiles!inner(username, avatar_url)
+        `)
+        .eq('user_id', targetUserId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching user events:', error);
+        return null;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error in getUserEvents:', error);
+      return null;
+    }
+  }
 }
