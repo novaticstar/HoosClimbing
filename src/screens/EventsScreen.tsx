@@ -56,15 +56,7 @@ export default function EventsScreen() {
         <Container style={styles.content}>
           <View style={styles.titleRow}>
             <ThemedText variant="h2" color="text" style={styles.title}>Events</ThemedText>
-
-          {/* Create Event Button */}
-            <TouchableOpacity
-              onPress={() => setShowCreateEvent(true)}
-              style={[styles.addEventButton, { backgroundColor: colors.accent }]}
-            >
-              <ThemedText variant="body" color="onAccent">+ Add</ThemedText>
-            </TouchableOpacity>
-          </View>
+            </View>
 
           {loading ? (
             <ThemedText variant="body" color="textSecondary">Loading events...</ThemedText>
@@ -143,6 +135,17 @@ export default function EventsScreen() {
           onClose={() => setShowCreateEvent(false)}
         />
       </Modal>
+
+      {/* Updated Add Event Button */}
+      <View style={styles.fixedAddButtonWrapper}>
+        <TouchableOpacity
+          onPress={() => setShowCreateEvent(true)}
+          style={[styles.fixedAddButton, { backgroundColor: colors.accent }]}
+          activeOpacity={0.9}
+        >
+          <ThemedText variant="body" color="onAccent">+ Add Event</ThemedText>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -187,5 +190,27 @@ const styles = StyleSheet.create({
   },
   eventDate: {
     marginBottom: spacing.xs,
+  },
+  fixedAddButtonWrapper: {
+    position: 'absolute',
+    bottom: spacing.lg,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+
+  fixedAddButton: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderRadius: 30, // oval shape
+    minWidth: 1280,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4, // Android shadow
+    shadowColor: '#000', // iOS shadow
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
 });
