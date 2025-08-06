@@ -26,11 +26,11 @@ import { Card, Container, spacing, ThemedText, useTheme } from '../theme/ui';
 export default function HomeScreen() {
   const { colors } = useTheme();
   const { user, signOut } = useAuth();
-  const { 
-    friends, 
-    pendingRequests, 
+  const {
+    friends,
+    pendingRequests,
     sentRequests,
-    loading, 
+    loading,
     refreshing,
     acceptFriendRequest,
     removeFriend,
@@ -64,7 +64,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={refresh} />
@@ -115,12 +115,12 @@ export default function HomeScreen() {
             <ThemedText variant="body" color="textSecondary">
                 Welcome, {user?.user_metadata?.username || 'username'}!
             </ThemedText>
-            
+
           </View>
 
           {/* Friends Section */}
           <View style={styles.section}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.sectionHeader}
               onPress={() => navigation.navigate('Friends')}
               activeOpacity={0.7}
@@ -137,8 +137,8 @@ export default function HomeScreen() {
                     Your Friends
                   </ThemedText>
                 </TouchableOpacity>
-                <ScrollView 
-                  horizontal 
+                <ScrollView
+                  horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.friendsList}
                   nestedScrollEnabled={true}
@@ -160,7 +160,7 @@ export default function HomeScreen() {
           {/* Feed Section */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <TouchableOpacity 
+              <TouchableOpacity
               style={styles.sectionHeader}
               onPress={() => navigation.navigate('Feed')}
               activeOpacity={0.7}
@@ -183,11 +183,13 @@ export default function HomeScreen() {
                           style={styles.postImage}
                           resizeMode="cover"
                         />
-                      ) : (
-                        <View style={[styles.feedImage, { backgroundColor: colors.surfaceVariant }]}>
-                          <ThemedText variant="body" color="textSecondary">No media</ThemedText>
+                      ) : topPost.description ? (
+                        <View style={[styles.textOnlyPost, { backgroundColor: colors.surfaceVariant }]}>
+                          <ThemedText variant="body" color="text" style={styles.textOnlyContent}>
+                            {topPost.description}
+                          </ThemedText>
                         </View>
-                      )}
+                      ) : null}
                   <View style={styles.feedContent}>
                     <View style={styles.feedInfo}>
                       <View style={styles.avatarRow}>
@@ -196,13 +198,20 @@ export default function HomeScreen() {
                           name={topPost.profiles?.username}
                           size={50}
                         />
-                      {topPost.description && (
-                        <ThemedText variant="body" color="textSecondary">
-                          {topPost.description}
-                        </ThemedText>
-                      )}
+                        <View>
+                          <ThemedText variant="body" color="text">
+                            {topPost.profiles?.username || 'Unknown'}
+                          </ThemedText>
+                          </View>
+                          {topPost.description && (
+                            <ThemedText variant="body" color="textSecondary">
+                              {topPost.description}
+                            </ThemedText>
+                          )}
+                      </View>
                     </View>
-                    </View>
+
+                    {/* Play Button */}
                     <View style={[styles.playButton, { backgroundColor: colors.accent }]}>
                       <ThemedText variant="body" color="onAccent">▶</ThemedText>
                     </View>
@@ -218,57 +227,50 @@ export default function HomeScreen() {
 
           {/* Events Section */}
           <View style={styles.section}>
-              <TouchableOpacity 
+            <TouchableOpacity
               style={styles.sectionHeader}
               onPress={() => navigation.navigate('EventsList')}
               activeOpacity={0.7}
             >
-                <ThemedText variant="h3" color="text">Events →</ThemedText>
-              </TouchableOpacity>
+              <ThemedText variant="h3" color="text">Events →</ThemedText>
+            </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => navigation.navigate('EventsList')}>
+            {eventLoading ? (
+              <ThemedText variant="body" color="textSecondary">Loading latest event...</ThemedText>
+            ) : latestEvent ? (
+              <TouchableOpacity onPress={() => navigation.navigate('EventDetails', { eventId: latestEvent.id })}>
                 <Card style={styles.feedCard}>
+                  {/* Event image */}
+                  {latestEvent.image_url && (
+                    <Image
+                      source={{ uri: latestEvent.image_url }}
+                      style={styles.postImage}
+                      resizeMode="cover"
+                    />
+                  )}
+
+                  {/* Event Info */}
                   <View style={styles.feedContent}>
                     <View style={styles.feedInfo}>
-                      {eventLoading ? (
-                         <ThemedText variant="body" color="textSecondary">Loading latest event...</ThemedText>
-                       ) : latestEvent ? (
-                         <TouchableOpacity onPress={() => navigation.navigate('EventsList', { eventId: latestEvent.id })}>
-                           <Card style={styles.feedCard}>
-                             {latestEvent.image_url ? (
-                               <Image
-                                 source={{ uri: latestEvent.image_url }}
-                                 style={{ width: '100%', height: 180 }}
-                                 resizeMode="cover"
-                               />
-                             ) : (
-                               <View style={[styles.feedImage, { backgroundColor: colors.surfaceVariant }]}>
-                                 <ThemedText variant="body" color="textSecondary">No image</ThemedText>
-                               </View>
-                             )}
-                             <View style={styles.feedContent}>
-                               <View style={styles.feedInfo}>
-                                 <ThemedText variant="h4" color="text">{latestEvent.title}</ThemedText>
-                                 <ThemedText variant="body" color="textSecondary">{latestEvent.description}</ThemedText>
-                                 <ThemedText variant="caption" color="accent">{new Date(latestEvent.event_date).toLocaleDateString()}</ThemedText>
-                               </View>
-                               <View style={[styles.playButton, { backgroundColor: colors.accent }]}>
-                                 <ThemedText variant="body" color="onAccent">▶</ThemedText>
-                               </View>
-                             </View>
-                           </Card>
-                         </TouchableOpacity>
-                       ) : (
-                         <ThemedText variant="body" color="textSecondary">No upcoming events.</ThemedText>
-                       )}
-                   </View>
+                      <ThemedText variant="h4" color="text">{latestEvent.title}</ThemedText>
+                      <ThemedText variant="body" color="textSecondary">{latestEvent.description}</ThemedText>
+                      <ThemedText variant="caption" color="accent">
+                        {new Date(latestEvent.event_date).toLocaleDateString()}
+                      </ThemedText>
+                    </View>
+                    <View style={[styles.playButton, { backgroundColor: colors.accent }]}>
+                      <ThemedText variant="body" color="onAccent">▶</ThemedText>
+                    </View>
                   </View>
                 </Card>
               </TouchableOpacity>
+            ) : (
+              <ThemedText variant="body" color="textSecondary">No upcoming events.</ThemedText>
+            )}
           </View>
-        </Container>
-      </ScrollView>
-    </SafeAreaView>
+      </Container>
+  </ScrollView>
+</SafeAreaView>
   );
 }
 
@@ -392,7 +394,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-  
+
   },
   postItem: {
     width: '48%',
@@ -437,5 +439,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: spacing.xl,
+  },
+  textOnlyPost: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.lg,
+    minHeight: 120,
+    justifyContent: 'center',
+    alignSelf: 'stretch',
+  },
+  textOnlyContent: {
+    fontSize: 18,
+    lineHeight: 24,
+    textAlign: 'center',
   },
 });
