@@ -35,6 +35,7 @@ export default function FeedScreen() {
 
   const scrollToTop = () => {
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
+    refreshPosts(); // refresh feed after scroll
   };
 
   const renderItem = ({ item }: { item: FeedItem }) => (
