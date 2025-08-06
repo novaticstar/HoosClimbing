@@ -154,6 +154,14 @@ after delete on public.likes
 for each row
 execute function public.update_feed_like_count();
 
+-- Create trigger to fire after a new like is inserted
+drop trigger if exists on_post_like on public.likes;
+
+create trigger on_post_like
+after insert on public.likes
+for each row
+execute procedure public.handle_post_like_notification();
+
 -- Indexes for fast lookup
 create index if not exists likes_user_id_idx on public.likes(user_id);
 create index if not exists likes_post_id_idx on public.likes(post_id);
