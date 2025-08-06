@@ -251,7 +251,7 @@ export default function CreatePostScreen({ onPostCreated, onClose }: Props) {
                 backgroundColor: colors.surface,
                 borderColor: colors.border 
               }]}
-              placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor"
+              placeholder="Post Description"
               placeholderTextColor={colors.textSecondary}
               value={description}
               onChangeText={setDescription}
