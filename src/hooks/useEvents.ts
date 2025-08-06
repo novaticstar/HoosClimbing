@@ -45,8 +45,18 @@ export const useEvents = () => {
     fetchEvents();
   }, [fetchEvents]);
 
+  const now = new Date();
+  const upcomingEvents = events.filter(e => new Date(e.event_date) > now);
+
+  const featuredEvent = upcomingEvents.reduce<EventItem | null>((most, current) => {
+        const mostCount = most?.attendee_count ?? 0;
+        const currentCount = current?.attendee_count ?? 0;
+        return currentCount > mostCount ? current : most;
+  }, null);
+
   return {
     events,
+    featuredEvent,
     loading,
     error,
     createEvent,

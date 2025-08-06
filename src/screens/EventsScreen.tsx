@@ -17,7 +17,7 @@ type EventsScreenNavigationProp = StackNavigationProp<HomeStackParamList, 'Event
 export default function EventsScreen() {
   const { colors } = useTheme();
   const navigation = useNavigation<EventsScreenNavigationProp>();
-  const { events, loading, refreshEvents } = useEvents();
+  const { events, featuredEvent, loading, refreshEvents } = useEvents();
   const [refreshing, setRefreshing] = useState(false);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
 
@@ -32,8 +32,9 @@ export default function EventsScreen() {
     refreshEvents();
   };
 
-  const popularEvent = events.length > 0 ? events[0] : null;
-  const upcomingEvents = events.slice(1);
+  const otherUpcomingEvents = events
+    .filter(e => new Date(e.event_date) > new Date())
+    .filter(e => e.id !== featuredEvent?.id);
 
   const handleEventPress = (eventId: string) => {
       navigation.navigate('EventDetails', { eventId });
@@ -76,35 +77,35 @@ export default function EventsScreen() {
           ) : (
             <>
               {/* Popular Event */}
-              {popularEvent && (
+              {featuredEvent && (
                 <>
                   <ThemedText variant="h3" color="text" style={styles.sectionTitle}>Featured Event</ThemedText>
-                  <TouchableOpacity onPress={() => handleEventPress(popularEvent.id)}>
+                  <TouchableOpacity onPress={() => handleEventPress(featuredEvent.id)}>
                     <Card style={StyleSheet.flatten([styles.popularCard, { backgroundColor: colors.surface }])}>
-                      {popularEvent.image_url && (
-                        <Image
-                          source={{ uri: popularEvent.image_url }}
-                          style={styles.eventImage}
-                        />
-                      )}
-                      <ThemedText variant="h4" color="text" style={styles.eventTitle}>{popularEvent.title}</ThemedText>
-                      <ThemedText variant="body" color="textSecondary" style={styles.eventDescription}>{popularEvent.description}</ThemedText>
-                      <ThemedText variant="caption" color="accent" style={styles.eventDate}>
-                        {new Date(popularEvent.event_date).toLocaleDateString()}
-                      </ThemedText>
-                      <ThemedText variant="caption" color="textSecondary">
-                        by @{popularEvent.profiles?.username || 'Unknown'}
-                      </ThemedText>
-                    </Card>
+                        {featuredEvent.image_url && (
+                          <Image
+                            source={{ uri: featuredEvent.image_url }}
+                            style={styles.eventImage}
+                          />
+                        )}
+                        <ThemedText variant="h4" color="text" style={styles.eventTitle}>{featuredEvent.title}</ThemedText>
+                        <ThemedText variant="body" color="textSecondary" style={styles.eventDescription}>{featuredEvent.description}</ThemedText>
+                        <ThemedText variant="caption" color="accent" style={styles.eventDate}>
+                          {new Date(featuredEvent.event_date).toLocaleDateString()}
+                        </ThemedText>
+                        <ThemedText variant="caption" color="textSecondary">
+                          by @{featuredEvent.profiles?.username || 'Unknown'}
+                        </ThemedText>
+                      </Card>
                   </TouchableOpacity>
                 </>
               )}
 
               {/* Upcoming Events */}
-              {upcomingEvents.length > 0 && (
+              {otherUpcomingEvents.length > 0 && (
                 <>
                   <ThemedText variant="h3" color="text" style={styles.sectionTitle}>Upcoming Events</ThemedText>
-                  {upcomingEvents.map((event) => (
+                  {otherUpcomingEvents.map((event) => (
                     <TouchableOpacity key={event.id} onPress={() => handleEventPress(event.id)}>
                       <Card style={StyleSheet.flatten([styles.eventCard, { backgroundColor: colors.surface }])}>
                         {event.image_url && (

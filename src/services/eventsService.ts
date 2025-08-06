@@ -15,6 +15,7 @@ export interface EventItem {
   description: string;
   event_date: string;
   image_url?: string | null;
+  attendee_count: number;
   profiles?: {
     username: string;
   };
@@ -143,7 +144,7 @@ export class EventService {
     const { data, error } = await supabase
       .from('events')
       .select(`
-        id, user_id, title, description, event_date, image_url,
+        id, user_id, title, description, event_date, image_url, attendee_count,
         profiles!user_id ( username )
       `)
       .order('event_date', { ascending: true });
@@ -156,6 +157,7 @@ export class EventService {
     return (data || []).map(event => ({
       ...event,
       image_url: event.image_url, // already a full signed URL
+      attendee_count: event.attendee_count,
       profiles: event.profiles ? {
         username: (event.profiles as any).username,
       } : undefined,
