@@ -18,6 +18,7 @@ import { useAppStateSync } from '../hooks/useAppStateSync';
 import { useRealtimeFriends as useFriends } from '../hooks/useRealtimeFriends';
 import { useRealtimeNotifications } from '../hooks/useRealtimeNotifications';
 import { useTopPost } from '../hooks/useTopPost';
+import { useLatestEvent } from '../hooks/useLatestEvent';
 import type { AppTabsParamList } from '../navigation/AppTabs';
 import type { HomeStackParamList } from '../navigation/HomeStack';
 import { User } from '../services/friendsService';
@@ -57,6 +58,8 @@ export default function HomeScreen() {
   const totalNotifications = unreadCount > 0 ? unreadCount : pendingRequests.length;
 
   const { post: topPost, loading: topPostLoading } = useTopPost();
+
+  const { event: latestEvent, loading: eventLoading } = useLatestEvent();
 
 
   return (
@@ -216,17 +219,40 @@ export default function HomeScreen() {
 
               <TouchableOpacity onPress={() => navigation.navigate('EventsList')}>
                 <Card style={styles.feedCard}>
-                  <View style={[styles.feedImage, { backgroundColor: colors.surfaceVariant }]}>
-                    <ThemedText variant="h1" color="textSecondary">🏔️</ThemedText>
-                  </View>
                   <View style={styles.feedContent}>
                     <View style={styles.feedInfo}>
-                      <ThemedText variant="h4" color="text">Next Event Title</ThemedText>
-                      <ThemedText variant="body" color="textSecondary">Short description or date</ThemedText>
-                    </View>
-                    <View style={[styles.playButton, { backgroundColor: colors.accent }]}>
-                      <ThemedText variant="body" color="onAccent">▶</ThemedText>
-                    </View>
+                      {eventLoading ? (
+                         <ThemedText variant="body" color="textSecondary">Loading latest event...</ThemedText>
+                       ) : latestEvent ? (
+                         <TouchableOpacity onPress={() => navigation.navigate('EventsList', { eventId: latestEvent.id })}>
+                           <Card style={styles.feedCard}>
+                             {latestEvent.image_url ? (
+                               <Image
+                                 source={{ uri: latestEvent.image_url }}
+                                 style={{ width: '100%', height: 180 }}
+                                 resizeMode="cover"
+                               />
+                             ) : (
+                               <View style={[styles.feedImage, { backgroundColor: colors.surfaceVariant }]}>
+                                 <ThemedText variant="body" color="textSecondary">No image</ThemedText>
+                               </View>
+                             )}
+                             <View style={styles.feedContent}>
+                               <View style={styles.feedInfo}>
+                                 <ThemedText variant="h4" color="text">{latestEvent.title}</ThemedText>
+                                 <ThemedText variant="body" color="textSecondary">{latestEvent.description}</ThemedText>
+                                 <ThemedText variant="caption" color="accent">{new Date(latestEvent.event_date).toLocaleDateString()}</ThemedText>
+                               </View>
+                               <View style={[styles.playButton, { backgroundColor: colors.accent }]}>
+                                 <ThemedText variant="body" color="onAccent">▶</ThemedText>
+                               </View>
+                             </View>
+                           </Card>
+                         </TouchableOpacity>
+                       ) : (
+                         <ThemedText variant="body" color="textSecondary">No upcoming events.</ThemedText>
+                       )}
+                   </View>
                   </View>
                 </Card>
               </TouchableOpacity>
