@@ -3,8 +3,9 @@
  */
 
 import React from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { FeedCard } from '../components/FeedCard';
 import { useFeedPosts } from '../hooks/useFeedPosts';
 import { FeedItem } from '../services/feedService';
@@ -14,6 +15,8 @@ export default function FeedScreen() {
   const { colors } = useTheme();
   const { posts, loading, error, handleLikeToggle: toggleLike, refreshPosts } = useFeedPosts();
   const [refreshing, setRefreshing] = React.useState(false);
+  const listRef = React.useRef<FlatList<FeedItem>>(null);
+  const [showScrollToTop, setShowScrollToTop] = React.useState(false);
 
   const handleLikeToggle = async (postId: string, hasLiked: boolean) => {
     await toggleLike(postId, hasLiked);
@@ -23,6 +26,15 @@ export default function FeedScreen() {
     setRefreshing(true);
     await refreshPosts();
     setRefreshing(false);
+  };
+
+  const handleScroll = (event: any) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    setShowScrollToTop(offsetY > 300); // show button when user scrolls 300px down
+  };
+
+  const scrollToTop = () => {
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
   const renderItem = ({ item }: { item: FeedItem }) => (
@@ -48,12 +60,15 @@ export default function FeedScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <FlatList
+        ref={listRef}
         data={posts}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={!loading ? renderEmptyState : null}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -67,6 +82,15 @@ export default function FeedScreen() {
           { paddingBottom: spacing.xxl } // Add bottom padding for all content
         ]}
       />
+
+      {showScrollToTop && (
+        <TouchableOpacity
+          style={[styles.scrollTopButton, { backgroundColor: colors.accent }]}
+          onPress={scrollToTop}
+        >
+          <Ionicons name="arrow-up" size={24} color={colors.onAccent} />
+        </TouchableOpacity>
+      )}
       
       {loading && (
         <View style={styles.loadingContainer}>
@@ -110,5 +134,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  },
+  scrollTopButton: {
+    position: 'absolute',
+    bottom: spacing.lg,
+    right: spacing.lg,
+    padding: spacing.md,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4, // Android shadow
+    shadowColor: '#000', // iOS shadow
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.5,
   },
 });
