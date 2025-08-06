@@ -169,8 +169,8 @@ export default function EventDetailsScreen() {
 
           {/* Show All Button */}
           {!showAll && attendees.length > previewLimit && (
-            <TouchableOpacity onPress={() => setShowAll(true)} style={styles.showAllButton}>
-              <ThemedText variant="body" color="accent">Show All Attendees</ThemedText>
+            <TouchableOpacity onPress={() => setShowAll(true)} style={[styles.showAllButton, { backgroundColor: colors.accent }]}>
+              <ThemedText variant="body" color="onAccent">Show All Attendees</ThemedText>
             </TouchableOpacity>
           )}
         </Container>
@@ -213,7 +213,17 @@ const styles = StyleSheet.create({
       gap: spacing.sm,
     },
   showAllButton: {
-    alignSelf: 'flex-start',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderRadius: 30, // oval shape
+    minWidth: 1280,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4, // Android shadow
+    shadowColor: '#000', // iOS shadow
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
   backButton: {
       flexDirection: 'row',
