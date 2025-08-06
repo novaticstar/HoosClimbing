@@ -19,7 +19,7 @@
      const { data, error } = await supabase
        .from('events')
        .select('*')
-       .order('event_date', { ascending: false })
+       .order('created_at', { ascending: false })
        .limit(1)
        .maybeSingle();
 
