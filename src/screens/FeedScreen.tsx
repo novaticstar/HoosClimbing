@@ -32,7 +32,7 @@ export default function FeedScreen() {
   const renderHeader = () => (
     <View style={styles.header}>
       <ThemedText variant="h2" color="text" style={styles.title}>
-        Feed
+       Feed
       </ThemedText>
     </View>
   );
@@ -82,12 +82,13 @@ const styles = StyleSheet.create({
     flex: 1 
   },
   header: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
   },
-  title: { 
-    fontWeight: '600',
+  title: {
+    marginBottom: spacing.lg,
+    padding: spacing.md,
   },
   empty: { 
     padding: spacing.lg,
