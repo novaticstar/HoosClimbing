@@ -132,7 +132,14 @@ export default function EventDetailsScreen() {
           <ThemedText variant="body" color="textSecondary" style={styles.description}>
             {event?.description}
           </ThemedText>
-          <ThemedText variant="caption" color="accent">{event?.event_date}</ThemedText>
+          <ThemedText variant="caption" color="accent">
+            {event?.event_date
+              ? new Date(event.event_date).toLocaleString(undefined, {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                })
+              : ''}
+          </ThemedText>
 
           {/* Attend Button */}
           <TouchableOpacity
