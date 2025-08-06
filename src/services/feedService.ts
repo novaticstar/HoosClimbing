@@ -280,7 +280,6 @@ export class FeedService {
           updated_at,
           profiles!user_id ( username, avatar_url )
         `)
-        .order('likes', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();

@@ -176,9 +176,18 @@ export default function HomeScreen() {
             ) : topPost ? (
               <TouchableOpacity onPress={() => navigation.navigate('Feed')}>
                 <Card style={styles.feedCard}>
-                  <View style={styles.feedImage}>
-                    <ThemedText variant="h1" color="textSecondary">🧗‍♂️</ThemedText>
-                  </View>
+                  {/* Post Media (Image or fallback) */}
+                      {topPost.image_url ? (
+                        <Image
+                          source={{ uri: topPost.image_url }}
+                          style={styles.postImage}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <View style={[styles.feedImage, { backgroundColor: colors.surfaceVariant }]}>
+                          <ThemedText variant="body" color="textSecondary">No media</ThemedText>
+                        </View>
+                      )}
                   <View style={styles.feedContent}>
                     <View style={styles.feedInfo}>
                       <View style={styles.avatarRow}>
