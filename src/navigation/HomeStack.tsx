@@ -6,6 +6,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import EventDetailsScreen from '../screens/EventDetailsScreen';
 import EventsScreen from '../screens/EventsScreen';
+import FriendsScreen from '../screens/FriendsScreen';
 import NotificationsScreen from '../screens/Notifications';
 import PostDetailScreen from '../screens/PostDetailScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -16,6 +17,7 @@ export type HomeStackParamList = {
   EventsList: undefined;
   EventDetails: { eventId: string };
   PostDetail: { postId: string };
+  FriendsMain: undefined;
 };
 
 const Stack = createStackNavigator<HomeStackParamList>();
@@ -46,6 +48,10 @@ export default function HomeStack() {
       <Stack.Screen
         name="PostDetail"
         component={PostDetailScreen}
+      />
+      <Stack.Screen
+        name="FriendsMain"
+        component={FriendsScreen}
       />
     </Stack.Navigator>
   );

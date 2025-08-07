@@ -1,6 +1,6 @@
 /**
   Notifications Screen
-  Currently only works for likes, comments, and tags
+  Works for likes, comments, replies, tags, and friendship requests
  */
 
 import React, { useLayoutEffect } from 'react';
@@ -31,14 +31,19 @@ export default function NotificationsScreen() {
       });
     }, [navigation, markAllAsRead]);
 
-    const handleNavigateToPost = async (postId: string, notificationId: string) => {
+    const handleNavigateFromNotification = async (item) => {
       await supabase
-          .from('notifications')
-          .update({ read: true })
-          .eq('id', notificationId);
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', item.id);
 
-        refreshNotifications();
-      navigation.navigate('PostDetail', { postId });
+      refreshNotifications();
+
+      if (item.post_id) {
+        navigation.navigate('PostDetail', { postId: item.post_id });
+      } else if (['friend_request', 'friend_accept'].includes(item.type)) {
+        navigation.navigate('FriendsMain');
+      }
     };
 
   const renderItem = ({ item }) => {
@@ -60,9 +65,17 @@ export default function NotificationsScreen() {
       case 'comment tag':
           message = `@${item.sender?.username || 'Someone'} tagged you in their comment!`;
           break;
+      case 'friend_request':
+          message = `@${item.sender?.username || 'Someone'} sent you a friend request!`;
+          break;
+      case 'friend_accept':
+          message = `@${item.sender?.username || 'Someone'} accepted your friend request!`;
+          break;
       default:
         message = `You have a new ${item.type} notification.`;
     }
+
+  const isNavigable = item.post_id || ['friend_request', 'friend_accept'].includes(item.type);
 
   return (
         <View style={[styles.notificationItem, { backgroundColor: colors.surface, opacity: item.read ? 0.5 : 1, }]}>
@@ -73,8 +86,8 @@ export default function NotificationsScreen() {
                 {new Date(item.created_at).toLocaleDateString()}
               </ThemedText>
             </View>
-            {item.post_id && (
-              <TouchableOpacity onPress={() => handleNavigateToPost(item.post_id, item.id)}>
+            {isNavigable && (
+              <TouchableOpacity onPress={() => handleNavigateFromNotification(item)}>
                 <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             )}

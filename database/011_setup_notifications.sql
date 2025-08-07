@@ -141,7 +141,7 @@ create or replace function public.handle_post_tags_notification()
 end;
 $$ language plpgsql security definer;
 
--- Create function and trigger that insert notification when a user is tagged in a comment
+-- Create function that inserts notification when a user is tagged in a comment
 create or replace function public.handle_post_comment_tag_notification()
  returns trigger as $$
  declare
@@ -164,4 +164,42 @@ create or replace function public.handle_post_comment_tag_notification()
     return new;
 end;
 $$ language plpgsql security definer;
+
+-- Create function that inserts notification when user has a new friend request
+create or replace function public.handle_friend_request_notification()
+ returns trigger as $$
+ begin
+   if new.status = 'pending' then
+     insert into public.notifications (
+       recipient_id,
+       sender_id,
+       type
+     ) values (
+       new.friend_id,    -- person receiving the friend request
+       new.user_id,      -- sender of request
+       'friend_request'
+     );
+   end if;
+   return new;
+ end;
+ $$ language plpgsql security definer;
+
+-- Create function that inserts notification when user's friend request is accepted
+ create or replace function public.handle_friend_accept_notification()
+ returns trigger as $$
+ begin
+   if old.status = 'pending' and new.status = 'accepted' then
+     insert into public.notifications (
+       recipient_id,
+       sender_id,
+       type
+     ) values (
+       new.user_id,      -- person who receives notification of acceptance
+       new.friend_id,    -- person who accepted
+       'friend_accept'
+     );
+   end if;
+   return new;
+ end;
+ $$ language plpgsql security definer;
 

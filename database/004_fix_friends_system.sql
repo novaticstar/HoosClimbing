@@ -180,3 +180,15 @@ DROP TRIGGER IF EXISTS on_auth_user_updated ON auth.users;
 CREATE TRIGGER on_auth_user_updated
   AFTER UPDATE ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_user_update();
+
+DROP TRIGGER IF EXISTS on_friend_request ON public.friendships;
+CREATE TRIGGER on_friend_request
+AFTER INSERT ON public.friendships
+FOR EACH ROW
+EXECUTE PROCEDURE public.handle_friend_request_notification();
+
+DROP TRIGGER IF EXISTS on_friend_accept ON public.friendships;
+CREATE TRIGGER on_friends_accept
+AFTER UPDATE ON public.friendships
+FOR EACH ROW
+EXECUTE PROCEDURE public.handle_friend_accept_notification();
