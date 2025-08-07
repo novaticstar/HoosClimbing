@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
 export interface NotificationItem {
@@ -16,30 +16,42 @@ export const useNotifications = () => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+  const fetchNotifications = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('notifications')
+      .select(`
+        id, recipient_id, sender_id, type, post_id, read, created_at,
+        sender:profiles!notifications_sender_id_fkey (username)
+      `)
+      .order('created_at', { ascending: false });
 
-      const { data, error } = await supabase
-        .from('notifications')
-        .select(`
-          id, recipient_id, sender_id, type, post_id, read, created_at,
-          sender:profiles!sender_id ( username )
-        `)
-        .eq('recipient_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching notifications:', error);
-      } else {
-        setNotifications(data || []);
-      }
-      setLoading(false);
-    };
-
-    fetchNotifications();
+    if (error) {
+      console.error('Error fetching notifications:', error);
+    } else {
+      setNotifications(data ?? []);
+    }
+    setLoading(false);
   }, []);
 
-  return { notifications, loading };
+  const markAllAsRead = useCallback(async () => {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('read', false); // only update unread
+
+      if (error) {
+        console.error('Failed to mark notifications as read:', error);
+      } else {
+        await fetchNotifications();
+      }
+    }, [fetchNotifications]);
+
+  const refreshNotifications = fetchNotifications;
+
+  useEffect(() => {
+        fetchNotifications();
+    }, [fetchNotifications]);
+
+  return { notifications, loading, markAllAsRead, refreshNotifications };
 };
