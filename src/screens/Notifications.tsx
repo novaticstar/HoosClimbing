@@ -22,8 +22,8 @@ export default function NotificationsScreen() {
           `You have a new ${item.type}!`
         )}
       </ThemedText>
-      <ThemedText variant="caption" color="textSecondary">
-        {new Date(item.created_at).toLocaleString()}
+      <ThemedText variant="caption" color="accent">
+        {new Date(item.created_at).toLocaleDateString()}
       </ThemedText>
     </View>
   );
