@@ -1,6 +1,6 @@
 /**
   Notifications Screen
-  Currently only works for post likes and comments/replies
+  Currently only works for likes, comments, and tags
  */
 
 import React, { useLayoutEffect } from 'react';
@@ -51,6 +51,15 @@ export default function NotificationsScreen() {
       case 'comment':
         message = `@${item.sender?.username || 'Someone'} commented on your post!`;
         break;
+      case 'comment like':
+          message = `@${item.sender?.username || 'Someone'} liked your comment!`;
+          break;
+      case 'tag':
+          message = `@${item.sender?.username || 'Someone'} tagged you in their post!`;
+          break;
+      case 'comment tag':
+          message = `@${item.sender?.username || 'Someone'} tagged you in their comment!`;
+          break;
       default:
         message = `You have a new ${item.type} notification.`;
     }

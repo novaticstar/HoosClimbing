@@ -92,3 +92,76 @@ create policy "Users can read their own notifications"
  end;
  $$ language plpgsql security definer;
 
+ -- Create the function and trigger that insert a notification when a comment is liked
+ create or replace function public.handle_post_comment_like_notification()
+ returns trigger as $$
+ declare
+    post_author uuid;
+    linked_post_id uuid;
+ begin
+    select c.post_id into linked_post_id from public.comments c where c.id = new.comment_id;
+    select f.user_id into post_author from public.feed f where f.id = linked_post_id;
+    if post_author != new.user_id then
+        insert into public.notifications (
+            recipient_id,
+            sender_id,
+            type,
+            post_id,
+            comment_id
+        ) values (
+            post_author,
+            new.user_id,
+            'comment like',
+            linked_post_id,
+            new.comment_id
+        );
+    end if;
+    return new;
+end;
+$$ language plpgsql security definer;
+
+-- Create the function and trigger that insert a notification when a user is tagged in a post
+create or replace function public.handle_post_tags_notification()
+ returns trigger as $$
+ begin
+    if new.user_id != new.tagged_by then
+        insert into public.notifications (
+            recipient_id,
+            sender_id,
+            type,
+            post_id
+        ) values (
+            new.user_id,
+            new.tagged_by,
+            'tag',
+            new.post_id
+        );
+    end if;
+    return new;
+end;
+$$ language plpgsql security definer;
+
+-- Create function and trigger that insert notification when a user is tagged in a comment
+create or replace function public.handle_post_comment_tag_notification()
+ returns trigger as $$
+ declare
+    linked_post_id uuid;
+ begin
+    select post_id into linked_post_id from public.comments where id = new.comment_id;
+    if new.user_id != new.tagged_by then
+        insert into public.notifications (
+            recipient_id,
+            sender_id,
+            type,
+            post_id
+        ) values (
+            new.user_id,
+            new.tagged_by,
+            'comment tag',
+            linked_post_id
+        );
+    end if;
+    return new;
+end;
+$$ language plpgsql security definer;
+

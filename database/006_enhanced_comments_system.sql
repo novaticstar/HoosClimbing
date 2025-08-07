@@ -158,3 +158,21 @@ BEGIN
   RETURN 'https://lszaovkgknpurhsjksqu.supabase.co/storage/v1/object/public/posts/' || image_path;
 END;
 $$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS on_comment_like ON public.comment_likes;
+CREATE TRIGGER on_comment_like
+AFTER INSERT ON public.comment_likes
+FOR EACH ROW
+EXECUTE PROCEDURE public.handle_post_comment_like_notification();
+
+DROP TRIGGER IF EXISTS on_post_tag ON public.post_tags;
+CREATE OR REPLACE TRIGGER on_post_tag
+AFTER INSERT ON public.post_tags
+FOR EACH ROW
+EXECUTE PROCEDURE public.handle_post_tags_notification();
+
+DROP TRIGGER IF EXISTS on_post_comment_tag ON public.comment_tags;
+CREATE TRIGGER on_post_comment_tag
+AFTER INSERT ON public.comment_tags
+FOR EACH ROW
+EXECUTE PROCEDURE public.handle_post_comment_tag_notification();
