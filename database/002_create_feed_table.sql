@@ -96,6 +96,13 @@ create trigger comments_updated_at
   for each row
   execute function public.handle_comment_updated_at();
 
+drop trigger if exists on_post_comment on public.comments;
+
+create trigger on_post_comment
+after insert on public.comments
+for each row
+execute procedure public.handle_post_comment_notification();
+
 -- Indexes for comments
 create index if not exists comments_post_id_idx on public.comments(post_id);
 create index if not exists comments_user_id_idx on public.comments(user_id);

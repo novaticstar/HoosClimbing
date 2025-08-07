@@ -64,3 +64,31 @@ create policy "Users can read their own notifications"
  end;
  $$ language plpgsql security definer;
 
+ -- Create the function that insert a notification when a post has new comments
+ create or replace function public.handle_post_comment_notification()
+ returns trigger as $$
+ declare
+    post_author uuid;
+ begin
+    -- Get the author of the post
+    select user_id into post_author from public.feed where id = new.post_id;
+
+    -- Don't notify if the commenter is the author
+    if post_author != new.user_id then
+        insert into public.notifications (
+            recipient_id,
+            sender_id,
+            type,
+            post_id
+        ) values (
+            post_author,
+            new.user_id,
+            'comment',
+            new.post_id
+        );
+    end if;
+
+    return new;
+ end;
+ $$ language plpgsql security definer;
+

@@ -13,38 +13,47 @@ export default function NotificationsScreen() {
   const { colors } = useTheme();
   const { notifications, loading } = useNotifications();
 
-  const renderItem = ({ item }) => (
-    <View style={[styles.notificationItem, { backgroundColor: colors.surface }]}>
-      <ThemedText variant="body" color="text">
-        {item.type === 'like' ? (
-          `@${item.sender?.username || 'Someone'} liked your post!`
-        ) : (
-          `You have a new ${item.type}!`
-        )}
-      </ThemedText>
-      <ThemedText variant="caption" color="accent">
-        {new Date(item.created_at).toLocaleDateString()}
-      </ThemedText>
-    </View>
-  );
+  const renderItem = ({ item }) => {
+    let message = '';
+
+    switch (item.type) {
+      case 'like':
+        message = `@${item.sender?.username || 'Someone'} liked your post!`;
+        break;
+      case 'comment':
+        message = `@${item.sender?.username || 'Someone'} commented on your post!`;
+        break;
+      default:
+        message = `You have a new ${item.type} notification.`;
+    }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemedText variant="h2" style={styles.title}>Notifications</ThemedText>
-      <FlatList
-        data={notifications}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <ThemedText variant="body" color="textSecondary" style={styles.empty}>
-            No notifications yet.
+        <View style={[styles.notificationItem, { backgroundColor: colors.surface }]}>
+          <ThemedText variant="body" color="text">{message}</ThemedText>
+          <ThemedText variant="caption" color="accent">
+            {new Date(item.created_at).toLocaleDateString()}
           </ThemedText>
-        }
-      />
-    </SafeAreaView>
-  );
-}
+        </View>
+      );
+    };
+
+  return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <ThemedText variant="h2" style={styles.title}>Notifications</ThemedText>
+        <FlatList
+          data={notifications}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={
+            <ThemedText variant="body" color="textSecondary" style={styles.empty}>
+              No notifications yet.
+            </ThemedText>
+          }
+        />
+      </SafeAreaView>
+    );
+  }
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: spacing.lg },
