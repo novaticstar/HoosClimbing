@@ -106,7 +106,7 @@ export default function UserProfileView({
   const handlePostPress = (post: any) => {
     // Navigate to PostDetail to view the full post
     try {
-      navigation.navigate('PostDetail' as never, { postId: post.id } as never);
+     // navigation.navigate('PostDetail' as never, { postId: post.id } as never);
     } catch (error) {
       console.log('Navigation error:', error);
     }
@@ -310,9 +310,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     maxWidth: 300,
     alignSelf: 'center',
+
   },
   statItem: {
     alignItems: 'center',
+    
   },
   actionSection: {
     flexDirection: 'row',

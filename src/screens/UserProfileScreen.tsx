@@ -165,7 +165,7 @@ export default function UserProfileScreen() {
   const renderPostItem = ({ item }: { item: UserPost }) => (
     <TouchableOpacity 
       style={styles.postItem}
-      onPress={() => navigation.navigate('PostDetail' as never, { postId: item.id } as never)}
+     // onPress={() => navigation.navigate('PostDetail' as never, { postId: item.id } as never)}
     >
       {item.image_url ? (
         <Image source={{ uri: item.image_url }} style={styles.postImage} />
@@ -398,12 +398,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: spacing.lg,
+    gap: 20,
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: '#e0e0e0',
     marginBottom: spacing.lg,
     maxWidth: 300,
     alignSelf: 'center',
+
   },
   statItem: {
     alignItems: 'center',

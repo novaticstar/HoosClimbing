@@ -23,7 +23,8 @@ import AuthStack from './AuthStack';
 
 export type RootStackParamList = {
   AppTabs: undefined;
-  PostDetail: { postId: string };
+  
+  
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
