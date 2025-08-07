@@ -8,7 +8,7 @@ import { useFriends } from '../hooks/useFriends';
 import { useProfile } from '../hooks/useProfile';
 import { Container, spacing, ThemedText, useTheme } from '../theme/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/RootNavigator';
+import { ProfileStackParamList } from '../navigation/ProfileStack';
 
 
 // Simple User Icon Component
@@ -44,8 +44,9 @@ export default function ProfileScreen() {
   const bio = profile?.bio || 'This is a short bio about the user. It can include hobbies, interests, or anything else.';
   const profilePicture = profile?.avatar_url || user?.user_metadata?.avatar_url || null;
 
-  type PostDetailScreenProp = StackNavigationProp<RootStackParamList, 'PostDetail'>;
-  const navigation = useNavigation<PostDetailScreenProp>();
+  type ProfileDetailScreenProp = StackNavigationProp<ProfileStackParamList>;
+
+  const navigation = useNavigation<ProfileDetailScreenProp>();
   const handleProfileUpdated = (newBio: string, newAvatar: string | null) => {
     // Refresh profile data to get latest updates
     refreshProfile();
@@ -54,7 +55,7 @@ export default function ProfileScreen() {
   const handleContentPress = (item: any) => {
     if (item.title) {
       // It's an event - for now navigate to Home tab (future: navigate to EventDetails)
-      navigation.navigate('Home' as never);
+      navigation.navigate('EventDetail', {eventId: item.id});
     } else {
       // It's a post - navigate to PostDetail to view the full post
       navigation.navigate('PostDetail', { postId: item.id });
