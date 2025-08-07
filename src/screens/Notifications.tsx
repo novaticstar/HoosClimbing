@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../lib/supabase';
 import { NotificationsStackParamList } from '../navigation/NotificationsStack';
 import { useTheme, ThemedText, spacing } from '../theme/ui';
 import { useNotifications } from '../hooks/useNotifications';
@@ -30,7 +31,13 @@ export default function NotificationsScreen() {
       });
     }, [navigation, markAllAsRead]);
 
-    const handleNavigateToPost = (postId: string) => {
+    const handleNavigateToPost = async (postId: string, notificationId: string) => {
+      await supabase
+          .from('notifications')
+          .update({ read: true })
+          .eq('id', notificationId);
+
+        refreshNotifications();
       navigation.navigate('PostDetail', { postId });
     };
 
@@ -49,7 +56,7 @@ export default function NotificationsScreen() {
     }
 
   return (
-        <View style={[styles.notificationItem, { backgroundColor: colors.surface }]}>
+        <View style={[styles.notificationItem, { backgroundColor: colors.surface, opacity: item.read ? 0.5 : 1, }]}>
           <View style={styles.notificationRow}>
             <View style={{ flex: 1 }}>
               <ThemedText variant="body" color="text">{message}</ThemedText>
@@ -58,7 +65,7 @@ export default function NotificationsScreen() {
               </ThemedText>
             </View>
             {item.post_id && (
-              <TouchableOpacity onPress={() => handleNavigateToPost(item.post_id)}>
+              <TouchableOpacity onPress={() => handleNavigateToPost(item.post_id, item.id)}>
                 <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             )}
