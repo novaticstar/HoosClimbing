@@ -8,7 +8,7 @@ create table if not exists public.notifications (
   recipient_id uuid not null references public.profiles(id) on delete cascade,
   sender_id uuid references public.profiles(id) on delete cascade,
   type text not null, -- 'like', 'comment', 'reply', etc.
-  post_id uuid references public.posts(id),
+  post_id uuid references public.feed(id),
   comment_id uuid references public.comments(id),
   read boolean default false,
   created_at timestamptz default now()
@@ -43,7 +43,7 @@ create policy "Users can read their own notifications"
    post_author uuid;
  begin
    -- Get the author of the post
-   select user_id into post_author from public.posts where id = new.post_id;
+   select user_id into post_author from public.feed where id = new.post_id;
 
    -- Don't notify if the liker is the author
    if post_author != new.user_id then

@@ -19,6 +19,7 @@ import { useRealtimeFriends as useFriends } from '../hooks/useRealtimeFriends';
 import { useRealtimeNotifications } from '../hooks/useRealtimeNotifications';
 import { useTopPost } from '../hooks/useTopPost';
 import { useLatestEvent } from '../hooks/useLatestEvent';
+import { useNotifications } from '../hooks/useNotifications';
 import type { AppTabsParamList } from '../navigation/AppTabs';
 import type { HomeStackParamList } from '../navigation/HomeStack';
 import { User } from '../services/friendsService';
@@ -38,6 +39,9 @@ export default function HomeScreen() {
     refresh
   } = useFriends();
   const { unreadCount } = useRealtimeNotifications();
+  const { notifications } = useNotifications();
+  const totalNotifications = notifications.filter(n => !n.read).length;
+
   const navigation = useNavigation<
     CompositeNavigationProp<
       StackNavigationProp<HomeStackParamList, 'HomeMain'>,
@@ -55,7 +59,7 @@ export default function HomeScreen() {
   const closeMenu = () => setMenuVisible(false);
 
   const hasPendingRequests = pendingRequests.length > 0;
-  const totalNotifications = unreadCount > 0 ? unreadCount : pendingRequests.length;
+  const totalFriendNotifications = unreadCount > 0 ? unreadCount : pendingRequests.length;
 
   const { post: topPost, loading: topPostLoading } = useTopPost();
 
@@ -83,12 +87,15 @@ export default function HomeScreen() {
                 </ThemedText>
               </View>
               <View style={styles.headerButtons}>
-                <TouchableOpacity style={styles.headerButton}>
+                <TouchableOpacity
+                    style={styles.headerButton}
+                    onPress={() => navigation.navigate('Notifications')}
+                  >
                   <Ionicons name="notifications-outline" size={24} color={colors.textSecondary} />
                   {totalNotifications > 0 && (
                     <View style={[styles.notificationBadge, { backgroundColor: colors.accent }]}>
                       <ThemedText variant="caption" color="onAccent" style={styles.badgeText}>
-                        {totalNotifications}
+                        {totalNotifications > 99 ? '99+' : totalNotifications}
                       </ThemedText>
                     </View>
                   )}

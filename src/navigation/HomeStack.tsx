@@ -6,10 +6,12 @@ import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import EventDetailsScreen from '../screens/EventDetailsScreen';
 import EventsScreen from '../screens/EventsScreen';
+import NotificationsScreen from '../screens/Notifications';
 import HomeScreen from '../screens/HomeScreen';
 
 export type HomeStackParamList = {
   HomeMain: undefined;
+  NotificationsScreen: undefined;
   EventsList: undefined;
   EventDetails: { eventId: string };
 };
@@ -26,6 +28,10 @@ export default function HomeStack() {
       <Stack.Screen
         name="HomeMain"
         component={HomeScreen}
+      />
+      <Stack.Screen
+        name="Notifications"
+        component={NotificationsScreen}
       />
       <Stack.Screen
         name="EventsList"
